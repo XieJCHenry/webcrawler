@@ -159,7 +159,7 @@ public class MultiTasksHttpDownloader {
      * @param proxy
      * @return
      */
-    private boolean isProxyEffective(HttpHost proxy) {
+    private boolean isProxyReliable(HttpHost proxy) {
 
         return false;
     }

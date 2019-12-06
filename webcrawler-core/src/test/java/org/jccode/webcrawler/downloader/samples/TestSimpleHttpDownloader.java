@@ -1,6 +1,5 @@
-package org.jccode.webcrawler;
+package org.jccode.webcrawler.downloader.samples;
 
-import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.jccode.webcrawler.downloader.DownloaderInterface;
 import org.jccode.webcrawler.downloader.SimpleHttpDownloader;
 import org.junit.Test;

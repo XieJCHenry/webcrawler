@@ -3,9 +3,8 @@ package org.jccode.webcrawler.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.Objects;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -26,33 +25,35 @@ public class ResultItem {
 
     private int status;
 
-    private String charset;
+    private String charSet;
 
     private String contentType;
 
     /**
      * 被执行保存的时间，TODO 使用定时任务批量保存
      */
-    private long persistenceTime;
+    private Date persistenceTime;
 
     /**
      * 生成时间
      */
-    private long createTime;
+    private Date createTime;
+
+    /**
+     * 与 persistenceTime 关联
+     */
+    private boolean isConserved;
 
 
     /**
-     * 从输入里读取时就要确定charset，使用new String(byte[],charset)构造器
+     * 从输入里读取时就要确定charset，使用new String(byte[],charSet)构造器
      */
     private String rawText;
 
     public ResultItem() {
-        this.persistenceTime = System.currentTimeMillis();
+        this.createTime = new Date();
         this.itemName = UUID.randomUUID().toString();
-    }
-
-    public String getUrl() {
-        return url;
+        this.isConserved = false;
     }
 
     public ResultItem setUrl(String url) {
@@ -60,26 +61,14 @@ public class ResultItem {
         return this;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
     public ResultItem setStatus(int status) {
         this.status = status;
         return this;
     }
 
-    public String getCharset() {
-        return charset;
-    }
-
-    public ResultItem setCharset(String charset) {
-        this.charset = charset;
+    public ResultItem setCharSet(String charSet) {
+        this.charSet = charSet;
         return this;
-    }
-
-    public String getContentType() {
-        return contentType;
     }
 
     public ResultItem setContentType(String contentType) {
@@ -87,38 +76,28 @@ public class ResultItem {
         return this;
     }
 
-    public String getRawText() {
-        return rawText;
-    }
-
     public ResultItem setRawText(String rawText) {
         this.rawText = rawText;
         return this;
     }
 
-    public String getItemName() {
-        return itemName;
-    }
-
-    public long getPersistenceTime() {
-        return persistenceTime;
-    }
-
-    public void setItemName(String itemName) {
+    public ResultItem setItemName(String itemName) {
         this.itemName = itemName;
+        return this;
     }
 
-    public void setPersistenceTime(long persistenceTime) {
+    public ResultItem setPersistenceTime(Date persistenceTime) {
         this.persistenceTime = persistenceTime;
+        return this;
     }
 
-    public long getCreateTime() {
-        return createTime;
+    public boolean isConserved() {
+        return isConserved;
     }
 
-    public void setCreateTime(long createTime) {
-        this.createTime = createTime;
+    public ResultItem setConserved(boolean conserved) {
+        this.isConserved = conserved;
+        return this;
     }
-
 
 }

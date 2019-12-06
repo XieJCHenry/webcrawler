@@ -21,7 +21,7 @@ public class ConsolePersistence implements Persistence {
     @Override
     public void process(ResultItem resultItem) {
         StringBuilder appender = new StringBuilder();
-        String charset = resultItem.getCharset();
+        String charset = resultItem.getCharSet();
         appender.append("url:").append(resultItem.getUrl()).append("\n");
         appender.append("status code:").append(resultItem.getStatus()).append("\n");
         appender.append("raw text:").append("\n").append(resultItem.getRawText()).append("\n");

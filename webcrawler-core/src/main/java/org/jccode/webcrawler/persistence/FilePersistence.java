@@ -1,7 +1,9 @@
 package org.jccode.webcrawler.persistence;
 
 import com.google.common.base.Strings;
+import com.sun.org.apache.regexp.internal.REUtil;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Asserts;
@@ -9,6 +11,8 @@ import org.apache.log4j.Logger;
 import org.jccode.webcrawler.exception.PersistencePathUnValidException;
 import org.jccode.webcrawler.model.ResultItem;
 
+import java.io.*;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -19,7 +23,9 @@ import java.util.List;
  * @Date 2019/12/5 20:12
  * @Version 1.0
  **/
-public class FilePersistence extends Thread implements Persistence {
+@Getter
+@Setter
+public class FilePersistence extends AbstractPersistence implements Runnable {
 
     private final Logger log = Logger.getLogger(FilePersistence.class);
 
@@ -27,49 +33,60 @@ public class FilePersistence extends Thread implements Persistence {
 
     private String path;
 
-    private ResultItem resultItem;
-
     private String suffix;
 
 
     public FilePersistence() {
     }
 
+    public FilePersistence(String path) {
+        this(path, null);
+    }
 
-    public FilePersistence setPath(String path) {
-        if (Strings.isNullOrEmpty(path)) {
-            log.error("Persistence path is null or empty!");
-            throw new PersistencePathUnValidException();
-        }
+    public FilePersistence(ResultItem resultItem, String path, String suffix) {
+        super(resultItem);
         this.path = path;
-        return this;
+        this.suffix = suffix == null ? DEFAULT_SUFFIX : suffix;
     }
 
-    public FilePersistence setResultItem(ResultItem resultItem) {
-        if (resultItem == null) {
-            log.error("resultItem is null!");
-            throw new NullPointerException("ResultItem is null!");
-        }
-        this.resultItem = resultItem;
-        return this;
+
+    public FilePersistence(String path, String suffix) {
+        this.path = path;
+        this.suffix = suffix == null ? DEFAULT_SUFFIX : suffix;
     }
 
-    public FilePersistence setSuffix(String suffix) {
-        if (Strings.isNullOrEmpty(suffix)) {
-            log.info("use default suffix:" + DEFAULT_SUFFIX);
-            this.suffix = DEFAULT_SUFFIX;
-        }
-        this.suffix = suffix;
-        return this;
-    }
 
     @Override
     public void run() {
-
+        process();
     }
 
     @Override
-    public void process(ResultItem resultItem) {
-
+    protected void process() {
+        if (this.resultItem == null) {
+            throw new NullPointerException("ResultItem isn't initialized");
+        }
+        if (Strings.isNullOrEmpty(path)) {
+            throw new PersistencePathUnValidException();
+        }
+        String storagePath = path + resultItem.getItemName() + suffix;
+        File target = new File(storagePath);
+        try {
+            if (target.mkdirs()) {
+                BufferedWriter writer =
+                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(target)));
+                writer.write(resultItem.getRawText());
+                resultItem.setPersistenceTime(new Date());
+                resultItem.setConserved(true);
+                log.info("Success to storage content : " + resultItem.getItemName());
+            } else {
+                resultItem.setConserved(false);
+                log.warn("Failed to storage content : " + resultItem.getItemName());
+            }
+        } catch (IOException e) {
+            log.error("Exception occur during storage content : {}", e);
+        }
     }
+
+
 }

@@ -1,16 +1,26 @@
 package org.jccode.webcrawler.model;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.apache.http.client.methods.*;
+
+import java.util.Objects;
 
 /**
  * Task
+ * <p>
+ * 下载器任务
  *
  * @Description TODO
  * @Author jc-henry
  * @Date 2019/12/5 15:25
  * @Version 1.0
  **/
+@ToString
+@EqualsAndHashCode
 public class Task {
+
+    private String host;
 
     private String url;
 
@@ -29,6 +39,7 @@ public class Task {
     public Task(String url, String requestMethod) {
         this.url = url;
         this.request = convertToRequest(requestMethod);
+        this.host = request.getURI().getHost();
     }
 
     private HttpUriRequest convertToRequest(String requestMethod) {
@@ -67,4 +78,23 @@ public class Task {
     public void setRequest(HttpUriRequest request) {
         this.request = request;
     }
+
+    public boolean useProxy() {
+        return useProxy;
+    }
+
+    public void setUseProxy(boolean useProxy) {
+        this.useProxy = useProxy;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+
+//    public void setHost(String host) {
+//        String var1 = this.request.getURI().getHost();
+//        this.host = var1.equals(host) ? host : var1;
+//    }
+
 }
