@@ -4,6 +4,7 @@ package org.jccode.webcrawler.model;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -32,12 +33,14 @@ public class ResultItem {
     /**
      * 被执行保存的时间，TODO 使用定时任务批量保存
      */
-    private Date persistenceTime;
+//    private Date persistenceTime;
+    private LocalDateTime persistenceTime;
 
     /**
      * 生成时间
      */
-    private Date createTime;
+//    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      * 与 persistenceTime 关联
@@ -51,7 +54,7 @@ public class ResultItem {
     private String rawText;
 
     public ResultItem() {
-        this.createTime = new Date();
+        this.createTime = LocalDateTime.now();
         this.itemName = UUID.randomUUID().toString();
         this.isConserved = false;
     }
@@ -86,7 +89,7 @@ public class ResultItem {
         return this;
     }
 
-    public ResultItem setPersistenceTime(Date persistenceTime) {
+    public ResultItem setPersistenceTime(LocalDateTime persistenceTime) {
         this.persistenceTime = persistenceTime;
         return this;
     }

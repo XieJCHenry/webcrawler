@@ -182,7 +182,7 @@ public class TestSendQueryToSearchEngines {
             url += ecKeyWord;
             System.out.println(url);
             client = HttpClientBuilder.create()
-//                    .setUserAgent(HttpConst.USER_AGENT)
+//                    .setUserAgent(HttpConstant.USER_AGENT)
                     .build();
             HttpGet get = new HttpGet(url);
             Header[] headers = new Header[]{

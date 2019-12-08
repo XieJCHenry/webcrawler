@@ -1,19 +1,14 @@
 package org.jccode.webcrawler.persistence;
 
 import com.google.common.base.Strings;
-import com.sun.org.apache.regexp.internal.REUtil;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.util.Asserts;
 import org.apache.log4j.Logger;
 import org.jccode.webcrawler.exception.PersistencePathUnValidException;
 import org.jccode.webcrawler.model.ResultItem;
 
 import java.io.*;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * FilePersistence
@@ -30,6 +25,10 @@ public class FilePersistence extends AbstractPersistence implements Runnable {
     private final Logger log = Logger.getLogger(FilePersistence.class);
 
     private static final String DEFAULT_SUFFIX = ".dat";
+
+    private static final String LOCAL_ENCODING = System.getProperty("file.encoding");
+
+    private static final String LOCAL_SEPARATOR = System.getProperty("file.separator");
 
     private String path;
 
@@ -69,14 +68,14 @@ public class FilePersistence extends AbstractPersistence implements Runnable {
         if (Strings.isNullOrEmpty(path)) {
             throw new PersistencePathUnValidException();
         }
-        String storagePath = path + resultItem.getItemName() + suffix;
+        String storagePath = generateFilePath(path, resultItem.getItemName(), suffix);
         File target = new File(storagePath);
         try {
             if (target.mkdirs()) {
                 BufferedWriter writer =
-                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(target)));
+                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(target), LOCAL_ENCODING));
                 writer.write(resultItem.getRawText());
-                resultItem.setPersistenceTime(new Date());
+                resultItem.setPersistenceTime(LocalDateTime.now());
                 resultItem.setConserved(true);
                 log.info("Success to storage content : " + resultItem.getItemName());
             } else {
@@ -86,6 +85,12 @@ public class FilePersistence extends AbstractPersistence implements Runnable {
         } catch (IOException e) {
             log.error("Exception occur during storage content : {}", e);
         }
+    }
+
+    private String generateFilePath(String path, String fileName, String suffix) {
+        return path.endsWith(LOCAL_SEPARATOR) ?
+                path + fileName + suffix :
+                path + LOCAL_SEPARATOR + fileName + suffix;
     }
 
 

@@ -24,9 +24,13 @@ public class Task {
 
     private String url;
 
+    private String charset;
+
     private HttpUriRequest request;
 
     private boolean useProxy;
+
+    private boolean executeSuccess;
 
     public Task() {
     }
@@ -40,6 +44,11 @@ public class Task {
         this.url = url;
         this.request = convertToRequest(requestMethod);
         this.host = request.getURI().getHost();
+    }
+
+    public Task(String url, String requestMethod, String charset) {
+        this(url, requestMethod);
+        this.charset = charset;
     }
 
     private HttpUriRequest convertToRequest(String requestMethod) {
@@ -91,8 +100,15 @@ public class Task {
         return host;
     }
 
+    public boolean isExecuteSuccess() {
+        return executeSuccess;
+    }
 
-//    public void setHost(String host) {
+    public void setExecuteSuccess(boolean executeSuccess) {
+        this.executeSuccess = executeSuccess;
+    }
+
+    //    public void setHost(String host) {
 //        String var1 = this.request.getURI().getHost();
 //        this.host = var1.equals(host) ? host : var1;
 //    }

@@ -10,22 +10,22 @@ import org.jccode.webcrawler.model.ResultItem;
  * @Date 2019/12/5 20:11
  * @Version 1.0
  **/
-public class ConsolePersistence implements Persistence {
+public class ConsolePersistence extends AbstractPersistence {
 
-    private ResultItem resultItem;
 
     public ConsolePersistence(ResultItem resultItem) {
-        this.resultItem = resultItem;
+        super(resultItem);
     }
 
     @Override
-    public void process(ResultItem resultItem) {
+    protected void process() {
+        if (this.resultItem == null) {
+            throw new NullPointerException("ResultItem is null");
+        }
         StringBuilder appender = new StringBuilder();
-        String charset = resultItem.getCharSet();
         appender.append("url:").append(resultItem.getUrl()).append("\n");
         appender.append("status code:").append(resultItem.getStatus()).append("\n");
         appender.append("raw text:").append("\n").append(resultItem.getRawText()).append("\n");
         System.out.println(appender.toString());
-
     }
 }

@@ -22,7 +22,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.jccode.webcrawler.conts.HttpConst;
+import org.jccode.webcrawler.conts.HttpConstant;
 import org.jccode.webcrawler.model.Task;
 
 import javax.net.ssl.SSLContext;
@@ -144,24 +144,13 @@ public class MultiTasksHttpDownloader {
         this.httpClient = builder
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .setRedirectStrategy(new DefaultRedirectStrategy())
-                .setUserAgent(HttpConst.Header.USER_AGENT)
+                .setUserAgent(HttpConstant.Header.USER_AGENT)
                 .setDefaultCookieStore(cookieStore)
                 .setDefaultRequestConfig(requestConfig)
                 .setRoutePlanner(proxy == null ? null :
                         new DefaultProxyRoutePlanner(proxy))
                 .setConnectionManager(manager)
                 .build();
-    }
-
-    /**
-     * 检查Proxy是否有效
-     *
-     * @param proxy
-     * @return
-     */
-    private boolean isProxyReliable(HttpHost proxy) {
-
-        return false;
     }
 
 
@@ -201,9 +190,10 @@ public class MultiTasksHttpDownloader {
 
                 HttpEntity entity = response.getEntity();
                 InputStream stream = entity.getContent();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
                 BufferedWriter writer =
-                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8));
                 char[] buffer = new char[1024];
                 int len;
                 while ((len = reader.read(buffer)) != -1) {

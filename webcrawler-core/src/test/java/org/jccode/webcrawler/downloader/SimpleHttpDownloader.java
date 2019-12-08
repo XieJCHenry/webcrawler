@@ -1,12 +1,9 @@
 package org.jccode.webcrawler.downloader;
 
 import com.google.common.base.Strings;
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
@@ -23,11 +20,9 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.Asserts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
-import org.jccode.webcrawler.conts.HttpConst;
+import org.jccode.webcrawler.conts.HttpConstant;
 import org.jccode.webcrawler.model.Task;
 
 import javax.net.ssl.SSLContext;
@@ -37,7 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 /**
  * SimpleHttpDownloader
@@ -167,7 +161,7 @@ public class SimpleHttpDownloader extends AbstractDownloader {
         httpClient = builder
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .setRedirectStrategy(new DefaultRedirectStrategy())
-                .setUserAgent(HttpConst.Header.USER_AGENT)
+                .setUserAgent(HttpConstant.Header.USER_AGENT)
                 .setDefaultCookieStore(cookieStore)
                 .setDefaultRequestConfig(requestConfig)
                 .setRoutePlanner(proxy == null ? null :

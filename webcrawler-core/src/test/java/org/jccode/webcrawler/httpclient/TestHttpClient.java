@@ -32,7 +32,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.jccode.webcrawler.conts.HttpConst;
+import org.jccode.webcrawler.conts.HttpConstant;
 import org.junit.Test;
 
 import javax.net.ssl.SSLContext;
@@ -284,7 +284,7 @@ public class TestHttpClient {
                 .setRedirectStrategy(new DefaultRedirectStrategy())
                 .setDefaultRequestConfig(requestConfig)
                 .setDefaultCookieStore(cookieStore)
-                .setUserAgent(HttpConst.USER_AGENT)
+                .setUserAgent(HttpConstant.USER_AGENT)
                 .build();
 
         HttpGet get = new HttpGet(url);
@@ -321,7 +321,7 @@ public class TestHttpClient {
                 .setConnectionManager(manager)
                 .setRedirectStrategy(new DefaultRedirectStrategy())
                 .setDefaultCookieStore(new BasicCookieStore())
-                .setUserAgent(HttpConst.USER_AGENT)
+                .setUserAgent(HttpConstant.USER_AGENT)
                 .setDefaultHeaders(Arrays.asList(defaultHeaders()))
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .build();

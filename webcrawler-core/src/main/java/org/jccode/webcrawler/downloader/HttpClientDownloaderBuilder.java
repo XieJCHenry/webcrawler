@@ -14,7 +14,7 @@ import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
-import org.jccode.webcrawler.conts.HttpConst;
+import org.jccode.webcrawler.conts.HttpConstant;
 
 import javax.net.ssl.SSLContext;
 import java.nio.charset.CodingErrorAction;
@@ -24,6 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * HttpClientDownloaderBuilder
+ * <p>
+ * builder创建client实例，每个实例都可以进行多线程下载。
+ * 最初目的是为了整合三个搜索引擎的结果，考虑到后期可能扩展到可以自定义数据来源网站，因此
+ * 采用的方案是：“一个数据源网站对应一个client”。对于每一次搜索
  *
  * @Description TODO
  * @Author jc-henry
@@ -37,15 +41,15 @@ public class HttpClientDownloaderBuilder {
 
     private static final int DEFAULT_MAX_THREAD_NUM = DEFAULT_THREAD_NUM * 2;
 
-    private static final long DEFAULT_KEEP_ALIVE_TIME = 30;
+    private static final long DEFAULT_KEEP_ALIVE = 30;
 
-    private static final int DEFAULT_CONNECT_TIMEOUT = 5000;
+    private static final int DEFAULT_TIMEOUT = 5000;
 
     private static final String DEFAULT_THREAD_NAME = "HttpClientDownloader-Thread";
 
-    private int threads;
+    private Integer threads;
 
-    private int timeOut;
+    private Integer timeOut;
 
     private ExecutorService executorService;
 
@@ -53,19 +57,26 @@ public class HttpClientDownloaderBuilder {
 
     private String threadName;
 
-    private int threadNum;
-
     private CloseableHttpClient httpClient;
 
     private HttpHost proxy;
 
-    public HttpClientDownloaderBuilder() {
+    private static volatile HttpClientDownloaderBuilder INSTANCE;
+
+    private HttpClientDownloaderBuilder() {
     }
 
+    public static HttpClientDownloaderBuilder create() {
+        if (INSTANCE == null) {
+            synchronized (HttpClientDownloaderBuilder.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new HttpClientDownloaderBuilder();
+                }
+            }
+        }
+        return INSTANCE;
+    }
 
-//    public HttpClientDownloader build() {
-//
-//    }
 
     public HttpClientDownloaderBuilder setTimeOut(int timeOut) {
         this.timeOut = timeOut;
@@ -87,22 +98,13 @@ public class HttpClientDownloaderBuilder {
         return this;
     }
 
-    public HttpClientDownloaderBuilder setThreadNum(int threadNum) {
-        this.threadNum = threadNum;
-        return this;
-    }
-
-    public HttpClientDownloaderBuilder setHttpClient(CloseableHttpClient httpClient) {
-        this.httpClient = httpClient;
-        return this;
-    }
 
     public HttpClientDownloaderBuilder setProxy(HttpHost proxy) {
         this.proxy = proxy;
         return this;
     }
 
-    private void initHttpClient() {
+    private void initClient() {
         HttpClientBuilder builder = HttpClients.custom();
 
         SSLContext sslContext = SSLContexts.createSystemDefault();
@@ -110,7 +112,7 @@ public class HttpClientDownloaderBuilder {
         SocketConfig socketConfig = SocketConfig.custom()
                 .setTcpNoDelay(true)
                 .setSoKeepAlive(true)
-                .setSoTimeout(timeOut)
+                .setSoTimeout(timeOut != null ? timeOut : DEFAULT_TIMEOUT)
                 .build();
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry =
@@ -127,7 +129,7 @@ public class HttpClientDownloaderBuilder {
 
         PoolingHttpClientConnectionManager manager =
                 new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        manager.setMaxTotal(threads);
+        manager.setMaxTotal(threads != null ? threads : DEFAULT_THREAD_NUM);
         manager.setDefaultSocketConfig(socketConfig);
         manager.setDefaultConnectionConfig(connectionConfig);
 
@@ -141,7 +143,7 @@ public class HttpClientDownloaderBuilder {
         this.httpClient = builder
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .setRedirectStrategy(new DefaultRedirectStrategy())
-                .setUserAgent(HttpConst.Header.USER_AGENT)
+                .setUserAgent(HttpConstant.Header.USER_AGENT)
                 .setDefaultCookieStore(cookieStore)
                 .setDefaultRequestConfig(requestConfig)
                 .setRoutePlanner(proxy == null ? null :
@@ -150,7 +152,4 @@ public class HttpClientDownloaderBuilder {
                 .build();
     }
 
-//    private boolean checkProxyReliable() {
-//
-//    }
 }

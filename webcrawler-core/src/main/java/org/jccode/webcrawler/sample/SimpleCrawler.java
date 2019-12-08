@@ -9,7 +9,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.jccode.webcrawler.conts.HttpConst;
+import org.jccode.webcrawler.conts.HttpConstant;
 
 import java.io.*;
 
@@ -30,7 +30,7 @@ public class SimpleCrawler {
         String url = "http://juejin.im/";
 //        url = "https://www.baidu.com";
         CloseableHttpClient client = HttpClientBuilder.create()
-                .setUserAgent(HttpConst.USER_AGENT)
+                .setUserAgent(HttpConstant.USER_AGENT)
                 .build();
         System.out.println("************************************************");
         HttpGet get = new HttpGet(url);

@@ -1,14 +1,14 @@
 package org.jccode.webcrawler.conts;
 
 /**
- * HttpConst
+ * HttpConstant
  *
  * @Description TODO
  * @Author jc-henry
  * @Date 2019/11/30 19:33
  * @Version 1.0
  **/
-public class HttpConst {
+public class HttpConstant {
 
     public static class Header{
         public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; " +
@@ -47,6 +47,6 @@ public class HttpConst {
 //        public static final String JSON = "";
 //    }
 
-    private HttpConst() {
+    private HttpConstant() {
     }
 }
