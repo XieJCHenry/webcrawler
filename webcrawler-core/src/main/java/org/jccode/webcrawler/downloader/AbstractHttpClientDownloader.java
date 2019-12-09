@@ -27,7 +27,7 @@ public abstract class AbstractHttpClientDownloader implements Downloader {
 
 
     @Override
-    public abstract List<ResultItem> download(Task... tasks);
+    public abstract List<ResultItem> download(Task[] tasks);
 
     /**
      * 检查连接是否可用，如果是墙外的，则需要调用代理

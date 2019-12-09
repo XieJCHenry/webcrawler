@@ -1,7 +1,6 @@
 package org.jccode.webcrawler.system;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.jccode.webcrawler.util.SystemUtil;
 import org.junit.Test;
 
 import java.io.BufferedReader;

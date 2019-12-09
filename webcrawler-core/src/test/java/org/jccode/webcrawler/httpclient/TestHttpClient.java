@@ -284,7 +284,7 @@ public class TestHttpClient {
                 .setRedirectStrategy(new DefaultRedirectStrategy())
                 .setDefaultRequestConfig(requestConfig)
                 .setDefaultCookieStore(cookieStore)
-                .setUserAgent(HttpConstant.USER_AGENT)
+                .setUserAgent(HttpConstant.Header.USER_AGENT)
                 .build();
 
         HttpGet get = new HttpGet(url);
@@ -321,7 +321,7 @@ public class TestHttpClient {
                 .setConnectionManager(manager)
                 .setRedirectStrategy(new DefaultRedirectStrategy())
                 .setDefaultCookieStore(new BasicCookieStore())
-                .setUserAgent(HttpConstant.USER_AGENT)
+                .setUserAgent(HttpConstant.Header.USER_AGENT)
                 .setDefaultHeaders(Arrays.asList(defaultHeaders()))
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .build();

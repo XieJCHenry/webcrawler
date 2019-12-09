@@ -24,7 +24,7 @@ public class CountableThreadPool {
 
 //    private static final int DEFAULT_MAX_THREAD_NUM =
 
-    private static final String DEFAULT_THREAD_NAME = "HttpClientDownloader-Thread";
+    private static final String DEFAULT_THREAD_NAME = "InternalHttpClientDownloader-Thread";
 
     private ExecutorService executorService;
 

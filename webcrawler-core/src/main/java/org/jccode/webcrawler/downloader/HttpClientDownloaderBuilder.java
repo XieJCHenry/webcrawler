@@ -1,18 +1,22 @@
 package org.jccode.webcrawler.downloader;
 
-import org.apache.http.HttpHost;
+import org.apache.http.*;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeaderElementIterator;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.jccode.webcrawler.conts.HttpConstant;
 
@@ -41,11 +45,12 @@ public class HttpClientDownloaderBuilder {
 
     private static final int DEFAULT_MAX_THREAD_NUM = DEFAULT_THREAD_NUM * 2;
 
-    private static final long DEFAULT_KEEP_ALIVE = 30;
+    private static final long DEFAULT_KEEP_ALIVE = 60 * 1000;
 
     private static final int DEFAULT_TIMEOUT = 5000;
 
-    private static final String DEFAULT_THREAD_NAME = "HttpClientDownloader-Thread";
+    private static final String DEFAULT_THREAD_NAME = "InternalHttpClientDownloader" +
+            "-Thread";
 
     private Integer threads;
 
@@ -57,7 +62,7 @@ public class HttpClientDownloaderBuilder {
 
     private String threadName;
 
-    private CloseableHttpClient httpClient;
+//    private CloseableHttpClient httpClient;
 
     private HttpHost proxy;
 
@@ -104,7 +109,11 @@ public class HttpClientDownloaderBuilder {
         return this;
     }
 
-    private void initClient() {
+    public InternalHttpClientDownloader build() {
+        return new InternalHttpClientDownloader(generateClient());
+    }
+
+    private CloseableHttpClient generateClient() {
         HttpClientBuilder builder = HttpClients.custom();
 
         SSLContext sslContext = SSLContexts.createSystemDefault();
@@ -129,7 +138,8 @@ public class HttpClientDownloaderBuilder {
 
         PoolingHttpClientConnectionManager manager =
                 new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        manager.setMaxTotal(threads != null ? threads : DEFAULT_THREAD_NUM);
+        manager.setMaxTotal(500);
+        manager.setDefaultMaxPerRoute(manager.getMaxTotal() / 10);
         manager.setDefaultSocketConfig(socketConfig);
         manager.setDefaultConnectionConfig(connectionConfig);
 
@@ -139,8 +149,23 @@ public class HttpClientDownloaderBuilder {
                 .setRedirectsEnabled(true)
                 .build();
 
+
+        ConnectionKeepAliveStrategy keepAliveStrategy = (httpResponse, httpContext) -> {
+            HeaderElementIterator iter = new BasicHeaderElementIterator(
+                    httpResponse.headerIterator(HTTP.CONN_KEEP_ALIVE));
+            while (iter.hasNext()) {
+                HeaderElement e = iter.nextElement();
+                String param = e.getName();
+                String value = e.getValue();
+                if (value != null && "timeout".equalsIgnoreCase(param)) {
+                    return Long.parseLong(value) * 1000;
+                }
+            }
+            return DEFAULT_KEEP_ALIVE;
+        };
+
         BasicCookieStore cookieStore = new BasicCookieStore();
-        this.httpClient = builder
+        CloseableHttpClient client = builder
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .setRedirectStrategy(new DefaultRedirectStrategy())
                 .setUserAgent(HttpConstant.Header.USER_AGENT)
@@ -149,7 +174,10 @@ public class HttpClientDownloaderBuilder {
                 .setRoutePlanner(proxy == null ? null :
                         new DefaultProxyRoutePlanner(proxy))
                 .setConnectionManager(manager)
+                .setKeepAliveStrategy(keepAliveStrategy)
+//                .useSystemProperties()// 如果设置了jvm的代理参数，设置此项可以强制使用代理
                 .build();
+        return client;
     }
 
 }
