@@ -3,7 +3,7 @@ package org.jccode.webcrawler.downloader;
 /**
  * AbstractDownloader
  *
- * @Description TODO
+ * @Description
  * @Author jc-henry
  * @Date 2019/12/5 15:22
  * @Version 1.0

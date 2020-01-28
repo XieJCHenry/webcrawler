@@ -1,31 +1,29 @@
 package org.jccode.webcrawler.persistence;
 
+import org.apache.log4j.Logger;
 import org.jccode.webcrawler.model.ResultItem;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * ConsolePersistence
  *
- * @Description TODO
+ * @Description
  * @Author jc-henry
  * @Date 2019/12/5 20:11
  * @Version 1.0
  **/
 public class ConsolePersistence extends AbstractPersistence {
 
-
-    public ConsolePersistence(ResultItem resultItem) {
-        super(resultItem);
-    }
+    private static final Logger logger = Logger.getLogger(ConsolePersistence.class);
 
     @Override
-    protected void process() {
-        if (this.resultItem == null) {
-            throw new NullPointerException("ResultItem is null");
+    public void process(List<ResultItem> resultItems) {
+        for (ResultItem item : resultItems) {
+            item.setPersistenceTime(LocalDateTime.now());
+            logger.info("[" + item.getPersistenceTime() + "]" + item.getItemName() + "-"
+                    + item.getUrl() + "-" + item.getStatus());
         }
-        StringBuilder appender = new StringBuilder();
-        appender.append("url:").append(resultItem.getUrl()).append("\n");
-        appender.append("status code:").append(resultItem.getStatus()).append("\n");
-        appender.append("raw text:").append("\n").append(resultItem.getRawText()).append("\n");
-        System.out.println(appender.toString());
     }
 }

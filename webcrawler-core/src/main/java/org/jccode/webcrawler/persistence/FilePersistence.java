@@ -1,30 +1,33 @@
 package org.jccode.webcrawler.persistence;
 
-import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.log4j.Logger;
-import org.jccode.webcrawler.exception.PersistencePathUnValidException;
 import org.jccode.webcrawler.model.ResultItem;
 
 import java.io.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * FilePersistence
  *
- * @Description 多线程写入本地文件
+ * @Description 写入本地文件  TODO 1、是否有必要开启线程？ 2、增加写入到excel文件功能
  * @Author jc-henry
  * @Date 2019/12/5 20:12
  * @Version 1.0
  **/
 @Getter
 @Setter
-public class FilePersistence extends AbstractPersistence implements Runnable {
+public class FilePersistence extends AbstractPersistence {
 
     private final Logger log = Logger.getLogger(FilePersistence.class);
 
-    private static final String DEFAULT_SUFFIX = ".dat";
+    private static String DEFAULT_SUFFIX = ".dat";
+
+    private static String DEFAULT_FOLDER = "output";
+
+    private static final String DEFAULT_PATH = System.getProperty("user.dir");
 
     private static final String LOCAL_ENCODING = System.getProperty("file.encoding");
 
@@ -36,18 +39,13 @@ public class FilePersistence extends AbstractPersistence implements Runnable {
 
 
     public FilePersistence() {
+        this.suffix = DEFAULT_SUFFIX;
+        this.path = DEFAULT_PATH + LOCAL_SEPARATOR + DEFAULT_FOLDER;
     }
 
     public FilePersistence(String path) {
         this(path, null);
     }
-
-    public FilePersistence(ResultItem resultItem, String path, String suffix) {
-        super(resultItem);
-        this.path = path;
-        this.suffix = suffix == null ? DEFAULT_SUFFIX : suffix;
-    }
-
 
     public FilePersistence(String path, String suffix) {
         this.path = path;
@@ -56,28 +54,34 @@ public class FilePersistence extends AbstractPersistence implements Runnable {
 
 
     @Override
-    public void run() {
-        process();
+    public void process(List<ResultItem> resultItems) {
+        for (ResultItem item : resultItems) {
+            process(item);
+        }
     }
 
-    @Override
-    protected void process() {
-        if (this.resultItem == null) {
+    //    @Override
+    protected void process(ResultItem resultItem) {
+        if (resultItem == null) {
             throw new NullPointerException("ResultItem isn't initialized");
         }
-        if (Strings.isNullOrEmpty(path)) {
-            throw new PersistencePathUnValidException();
-        }
+        // 默认路径为当前工程的路径
+//        if (Strings.isNullOrEmpty(path)) {
+//            throw new PersistencePathUnValidException();
+//        }
         String storagePath = generateFilePath(path, resultItem.getItemName(), suffix);
         File target = new File(storagePath);
+
         try {
-            if (target.mkdirs()) {
-                BufferedWriter writer =
-                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(target), LOCAL_ENCODING));
-                writer.write(resultItem.getRawText());
+            if (!target.exists() || target.isDirectory() || target.mkdirs()) {
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(new FileOutputStream(target),
+                                LOCAL_ENCODING));
+                writer.write(resultItem.getContext());
                 resultItem.setPersistenceTime(LocalDateTime.now());
                 resultItem.setConserved(true);
-                log.info("Success to storage content : " + resultItem.getItemName());
+                log.info("Success to storage content : " + resultItem.getItemName() +
+                        "[" + resultItem.getPersistenceTime() + "]");
             } else {
                 resultItem.setConserved(false);
                 log.warn("Failed to storage content : " + resultItem.getItemName());
@@ -88,9 +92,11 @@ public class FilePersistence extends AbstractPersistence implements Runnable {
     }
 
     private String generateFilePath(String path, String fileName, String suffix) {
-        return path.endsWith(LOCAL_SEPARATOR) ?
-                path + fileName + suffix :
-                path + LOCAL_SEPARATOR + fileName + suffix;
+        StringBuilder appender = new StringBuilder();
+        appender.append(path.endsWith(LOCAL_SEPARATOR) ? (path + fileName) :
+                (path + LOCAL_SEPARATOR + fileName));
+        appender.append(suffix.startsWith(".") ? suffix : ("." + suffix));
+        return appender.toString();
     }
 
 

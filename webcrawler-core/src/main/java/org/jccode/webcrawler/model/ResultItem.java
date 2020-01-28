@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -31,19 +30,18 @@ public class ResultItem {
     private String contentType;
 
     /**
-     * 被执行保存的时间，TODO 使用定时任务批量保存
+     * 被执行保存的时间，TODO 使用定时任务批量保存，或达到上限批量保存
      */
-//    private Date persistenceTime;
     private LocalDateTime persistenceTime;
 
     /**
      * 生成时间
      */
-//    private Date createTime;
     private LocalDateTime createTime;
 
     /**
      * 与 persistenceTime 关联
+     * 用于保存失败时可以重试
      */
     private boolean isConserved;
 
@@ -51,7 +49,7 @@ public class ResultItem {
     /**
      * 从输入里读取时就要确定charset，使用new String(byte[],charSet)构造器
      */
-    private String rawText;
+    private String context;
 
     public ResultItem() {
         this.createTime = LocalDateTime.now();
@@ -79,8 +77,8 @@ public class ResultItem {
         return this;
     }
 
-    public ResultItem setRawText(String rawText) {
-        this.rawText = rawText;
+    public ResultItem setContext(String context) {
+        this.context = context;
         return this;
     }
 

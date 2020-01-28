@@ -4,16 +4,17 @@ import org.jccode.webcrawler.model.ResultItem;
 import org.jccode.webcrawler.model.WebPage;
 
 /**
- * Parser
- * <p>
- * 页面解析器，整合正则表达式，CSS选择器
+ * WebParser
  *
  * @Description TODO
  * @Author jc-henry
- * @Date 2019/11/30 19:19
+ * @Date 2020/1/27 9:27
  * @Version 1.0
  **/
-public interface Parser {
+public class WebParser implements Parser {
 
-    ResultItem parse(WebPage webPage);
+    @Override
+    public ResultItem parse(WebPage webPage) {
+        return null;
+    }
 }

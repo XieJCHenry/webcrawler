@@ -20,7 +20,7 @@ public class ProxyModel {
 
     private String host;
     private int port;
-    private Boolean isReliable;
+    private Boolean ifReliable;
 
     private ProxyModel() {
     }

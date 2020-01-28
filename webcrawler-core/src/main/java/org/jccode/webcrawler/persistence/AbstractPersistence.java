@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jccode.webcrawler.model.ResultItem;
 
+import java.util.List;
+
 /**
  * AbstractPersistence
  *
@@ -16,14 +18,6 @@ import org.jccode.webcrawler.model.ResultItem;
 @Setter
 public abstract class AbstractPersistence implements Persistence {
 
-    protected ResultItem resultItem;
-
-    public AbstractPersistence() {
-    }
-
-    public AbstractPersistence(ResultItem resultItem) {
-        this.resultItem = resultItem;
-    }
 
     /**
      * It is no need for subClasses to override this method.
@@ -31,15 +25,9 @@ public abstract class AbstractPersistence implements Persistence {
      * @param resultItem
      */
     @Override
-    public void process(ResultItem resultItem) {
-        if (this.resultItem != null) {
-            process();
-        } else {
-            // 如果方法参数resultItem也为null，由子类去检查并抛异常
-            this.resultItem = resultItem;
-            process();
-        }
+    public void process(List<ResultItem> resultItem) {
+
     }
 
-    protected abstract void process();
+//    protected abstract void process(ResultItem resultItem);
 }

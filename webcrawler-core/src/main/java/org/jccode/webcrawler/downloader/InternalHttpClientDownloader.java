@@ -1,19 +1,22 @@
 package org.jccode.webcrawler.downloader;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.*;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.checkerframework.checker.units.qual.C;
 import org.jccode.webcrawler.http.CustomResponseHandler;
 import org.jccode.webcrawler.model.ResultItem;
 import org.jccode.webcrawler.model.Task;
+import org.jccode.webcrawler.model.WebPage;
+import org.jccode.webcrawler.util.HttpUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * 根据传入的tasksList开启子线程进行下载
  * <p>
- * TODO 如何针对每个任务设置是否使用代理？
+ *
  * 存在问题：
  * 对于每一个Task，都有一个useProxy的标志，这个标志如果为true，代表需要用到Proxy，
  * 否则不需要用Proxy。但问题在于，CloseableHttpClient创建后就无法改变，也就是说不能在
@@ -41,8 +44,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * 问题二：(暂时解决)
  * 方案一：对于不同操作系统，获取并检查系统代理有效性的流程是一致的，可以通过设计模式统一起来。
- * 问题三：
- * TODO 这是一个更大的架构问题，还不能很好地解决。待定。
  *
  * @Description
  * @Author jc-henry
@@ -53,11 +54,9 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
     private final Logger log = Logger.getLogger(InternalHttpClientDownloader.class);
     private CloseableHttpClient httpClient;
-    private CustomResponseHandler responseHandler = new CustomResponseHandler();
+//    private CustomResponseHandler responseHandler = new CustomResponseHandler();
 
     private ExecutorService executorService;
-    // 其实并不需要持有一个任务队列的对象，只需要在download方法中传入待下载任务即可？
-//    private BlockingQueue<DownloaderTask> taskQueue = new LinkedBlockingQueue<>();
     private AtomicInteger threadAlive = new AtomicInteger(0);
     private String threadName;
     private int threadNum;
@@ -65,6 +64,9 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
     public InternalHttpClientDownloader(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
+        this.threadName = "InternalHttpClientDownloader-Thread";
+        this.threadNum = 4;
+        this.maxThreadNum = threadNum * 2;
         generateExecutorService();
     }
 
@@ -84,32 +86,55 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
         return this;
     }
 
-    //    @Override
-//    public List<ResultItem> download() {
-//        return null;
-//    }
 
     @Override
-    public List<ResultItem> download(Task[] tasks) {
-        if (tasks == null || tasks.length == 0) {
+    public List<WebPage> download(List<Task> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
             return Collections.emptyList();
         } else {
             BlockingQueue<DownloaderTask> tasksQueue =
-                    new ArrayBlockingQueue<>(tasks.length);
+                    new ArrayBlockingQueue<>(tasks.size());
             for (Task task : tasks) {
                 tasksQueue.add(new DownloaderTask(task, httpClient));
             }
+            List<WebPage> webPageList = new ArrayList<>(tasks.size());
             try {
-                List<Future<ResultItem>> futures = executorService.invokeAll(tasksQueue);
-                // 获得下载结果，解析或者返回
-            } catch (InterruptedException e) {
+                List<Future<WebPage>> futures = executorService.invokeAll(tasksQueue);
+                for (Future<WebPage> future : futures) {
+                    if(future.isDone()){
+                        webPageList.add(future.get());
+                    }
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            // 获得下载结果返回，将解析处理逻辑放到Parser中
+            return webPageList;
+        }
+    }
+
+//    public ResultItem download(Task task) {
+//        try {
+//            DownloaderTask downloaderTask = new DownloaderTask(task, httpClient);
+//            return downloaderTask.call();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return new ResultItem();
+//    }
+
+    @Override
+    public void close() {
+        if (httpClient != null) {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-
-        return Collections.emptyList();
     }
+
+
 
 
 
@@ -127,7 +152,7 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
     /*=====================================================================*/
 
-    static class DownloaderTask implements Callable<ResultItem> {
+    static class DownloaderTask implements Callable<WebPage> {
 
         private final Task task;
         private final CloseableHttpClient httpClient;
@@ -141,9 +166,12 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
         }
 
         @Override
-        public ResultItem call() throws Exception {
-            // 这里调用httpClient.execute方法进行下载
-            return null;
+        public WebPage call() throws Exception {
+            // TODO 这里调用httpClient.execute方法进行下载
+            CloseableHttpResponse response = httpClient.execute(task.getRequest());
+            WebPage webPage = initWebPage(response);
+            response.close();
+            return webPage;
         }
 
         public Task getTask() {
@@ -156,6 +184,24 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
         public HttpClientContext getClientContext() {
             return clientContext;
+        }
+
+        private WebPage initWebPage(CloseableHttpResponse response) throws IOException {
+            WebPage webPage = new WebPage();
+            String var1;
+            webPage.setStatus(response.getStatusLine().getStatusCode());
+            webPage.setSite(task.getHost());
+            // set path
+//            var1 = task.getUrl();
+//            webPage.setPath(var1.substring(var1.indexOf(task.getHost() + 1)));
+            // set content-type
+            var1 = response.getFirstHeader("Content-Type").getValue();
+            webPage.setContentType(var1.substring(0, var1.indexOf(";")));
+            // set encoding
+//            webPage.setEncoding(var1.substring(var1.indexOf("charset=" + 1)));
+            // set context
+            webPage.setContext(EntityUtils.toString(response.getEntity()));
+            return webPage;
         }
     }
 

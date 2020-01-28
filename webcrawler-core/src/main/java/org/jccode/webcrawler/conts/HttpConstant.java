@@ -3,7 +3,7 @@ package org.jccode.webcrawler.conts;
 /**
  * HttpConstant
  *
- * @Description TODO
+ * @Description
  * @Author jc-henry
  * @Date 2019/11/30 19:33
  * @Version 1.0

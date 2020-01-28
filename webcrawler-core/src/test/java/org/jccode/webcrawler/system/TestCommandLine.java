@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * TestCommandLine
  *
- * @Description TODO
+ * @Description
  * @Author jc-henry
  * @Date 2019/12/4 19:25
  * @Version 1.0
@@ -163,6 +163,11 @@ public class TestCommandLine {
     @Test
     public void testSystemDefaultCharset(){
         System.out.println(System.getProperty("file.encoding"));
+    }
+
+    @Test
+    public void testSystemProjectDirectory(){
+        System.out.println(System.getProperty("user.dir"));
     }
 
 

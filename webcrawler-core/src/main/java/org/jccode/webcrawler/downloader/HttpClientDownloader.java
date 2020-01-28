@@ -1,9 +1,15 @@
 package org.jccode.webcrawler.downloader;
 
 import org.apache.http.HttpHost;
+import org.apache.log4j.Logger;
 import org.jccode.webcrawler.model.ProxyModel;
+import org.jccode.webcrawler.model.ResultItem;
+import org.jccode.webcrawler.model.Task;
+import org.jccode.webcrawler.model.WebPage;
 import org.jccode.webcrawler.system.SystemProxyStrategy;
 import org.jccode.webcrawler.system.SystemProxyStrategyRegister;
+
+import java.util.*;
 
 /**
  * HttpClientDownloader
@@ -17,15 +23,61 @@ import org.jccode.webcrawler.system.SystemProxyStrategyRegister;
  **/
 public class HttpClientDownloader {
 
-    private InternalHttpClientDownloader proxyClient;
-    private InternalHttpClientDownloader directClient;
+    private static final Logger logger = Logger.getLogger(HttpClientDownloader.class);
+
+    private final InternalHttpClientDownloader proxyClient;
+    private final InternalHttpClientDownloader directClient;
 
     private final SystemProxyStrategyRegister register =
             SystemProxyStrategyRegister.getInstance();
 
-    private HttpClientDownloader() {
+    public HttpClientDownloader() {
         HttpClientDownloaderBuilder builder = HttpClientDownloaderBuilder.create();
-        ProxyModel proxy = register.system().inspect();
+        directClient = builder.build();
+        SystemProxyStrategy strategy = register.system();
+        // 判断系统代理是否可用
+        if (strategy != null) {
+            ProxyModel proxyModel = strategy.inspect();
+            HttpHost proxy = new HttpHost(proxyModel.getHost(), proxyModel.getPort());
+            proxyClient = builder.setProxy(proxy).build();
+        } else {
+            proxyClient = null;
+        }
     }
 
+
+    public List<WebPage> download(Task[] tasks) {
+        List<Task> directRequests = new ArrayList<>();
+        List<Task> proxyRequests = new ArrayList<>();
+        int failCount = 0;
+        for (Task task : tasks) {
+            if (task.useProxy()) {
+                if (proxyClient != null) {
+                    proxyRequests.add(task);
+                } else {
+                    failCount++;
+                }
+            } else {
+                directRequests.add(task);
+            }
+        }
+        List<WebPage> webPageList = new ArrayList<>(tasks.length);
+        if (proxyClient != null && !proxyRequests.isEmpty()) {
+            webPageList.addAll(proxyClient.download(proxyRequests));
+        } else {
+            logger.warn("[ " + failCount + " tasks failed : proxy unavailable ]");
+        }
+        webPageList.addAll(directClient.download(directRequests));
+        webPageList.sort(((o1, o2) -> o2.getTime().compareTo(o1.getTime())));
+        return webPageList;
+    }
+
+    public void close() {
+        if (proxyClient != null) {
+            proxyClient.close();
+        }
+        if (directClient != null) {
+            directClient.close();
+        }
+    }
 }

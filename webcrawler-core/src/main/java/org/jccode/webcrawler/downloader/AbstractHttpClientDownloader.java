@@ -1,7 +1,7 @@
 package org.jccode.webcrawler.downloader;
 
-import org.jccode.webcrawler.model.ResultItem;
 import org.jccode.webcrawler.model.Task;
+import org.jccode.webcrawler.model.WebPage;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * AbstractHttpClientDownloader
  *
- * @Description TODO
+ * @Description
  * @Author jc-henry
  * @Date 2019/12/6 16:54
  * @Version 1.0
@@ -27,7 +27,10 @@ public abstract class AbstractHttpClientDownloader implements Downloader {
 
 
     @Override
-    public abstract List<ResultItem> download(Task[] tasks);
+    public abstract List<WebPage> download(List<Task> taskList);
+
+    @Override
+    public abstract void close();
 
     /**
      * 检查连接是否可用，如果是墙外的，则需要调用代理

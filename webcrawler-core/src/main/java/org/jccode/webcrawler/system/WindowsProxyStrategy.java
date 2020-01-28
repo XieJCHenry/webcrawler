@@ -35,7 +35,7 @@ public class WindowsProxyStrategy extends AbstractSystemProxyStrategy {
     public ProxyModel inspect() {
         ProxyModel systemProxy = getSystemProxy();
         if (systemProxy != null) {
-            systemProxy.setIsReliable(HttpUtil.proxyIsReliable(systemProxy));
+            systemProxy.setIfReliable(HttpUtil.proxyReliable(systemProxy));
             return systemProxy;
         }
         return null;
@@ -69,8 +69,12 @@ public class WindowsProxyStrategy extends AbstractSystemProxyStrategy {
                 break;
             }
         }
-        res = var1.split(":");
-        return new ProxyModel(res[0], Integer.parseInt(res[1]));
+        if (var1 == null || var1.isEmpty()) {
+            return null;
+        } else {
+            res = var1.split(":");
+            return new ProxyModel(res[0], Integer.parseInt(res[1]));
+        }
     }
 
 }

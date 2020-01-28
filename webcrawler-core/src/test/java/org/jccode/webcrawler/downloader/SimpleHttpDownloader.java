@@ -36,8 +36,6 @@ import java.nio.charset.StandardCharsets;
 /**
  * SimpleHttpDownloader
  * <p>
- * TODO 待实现功能：根据用户输入域名查询地址，如果不在国内，自动连接到本地的代理端口，
- * TODO 如果本地代理尚未开启或无法连接，则不执行该URL的访问，或直接报错
  *
  * @Description
  * @Author jc-henry

@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * CustomResponseHandler
  * <p>
- * HttpClient的响应处理器
+ * HttpClient的响应处理器，暂不使用
  *
  * @Author jc-henry
  * @Date 2019/12/8 17:17

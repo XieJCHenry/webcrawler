@@ -46,6 +46,11 @@ public class Task {
         this.host = request.getURI().getHost();
     }
 
+    public Task(String url, boolean useProxy) {
+        this(url);
+        this.useProxy = useProxy;
+    }
+
     public Task(String url, String requestMethod, String charset) {
         this(url, requestMethod);
         this.charset = charset;

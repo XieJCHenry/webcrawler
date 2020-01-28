@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * TestSimpleHttpDownloader
  *
- * @Description TODO
+ * @Description
  * @Author jc-henry
  * @Date 2019/12/4 15:45
  * @Version 1.0

@@ -1,13 +1,14 @@
 package org.jccode.webcrawler.util;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jccode.webcrawler.model.ProxyModel;
-import sun.net.spi.DefaultProxySelector;
 
 import java.io.IOException;
 
@@ -26,18 +27,18 @@ public class HttpUtil {
     private HttpUtil() {
     }
 
-    public static boolean proxyIsReliable(ProxyModel proxy) {
-        return proxyIsReliable(proxy.getHost(), proxy.getPort());
+    public static boolean proxyReliable(ProxyModel proxy) {
+        return proxyReliable(proxy.getHost(), proxy.getPort());
     }
 
-    public static boolean proxyIsReliable(String host, int port) {
+    public static boolean proxyReliable(String host, int port) {
         CloseableHttpClient client = HttpClientBuilder.create()
                 .setProxy(new HttpHost(host, port))
                 .build();
         HttpGet get = new HttpGet(DEFAULT_REQUEST_URL);
         try (CloseableHttpResponse response = client.execute(get)) {
             int code = response.getStatusLine().getStatusCode();
-            return code >= 200 & code < 300;
+            return code >= 200 && code < 300;
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -53,4 +54,26 @@ public class HttpUtil {
         return false;
     }
 
+    public static boolean isOk(HttpResponse response) {
+        int code = response.getStatusLine().getStatusCode();
+        return code >= 200 && code < 300;
+    }
+
+    public static boolean isRedirect(HttpResponse response) {
+        int code = response.getStatusLine().getStatusCode();
+        return code >= 300 && code < 400;
+    }
+
+    public static boolean isError(HttpResponse response) {
+        int code = response.getStatusLine().getStatusCode();
+        return code >= 400;
+    }
+
+    public static void printHeaders(HttpResponse response){
+        System.out.println("*****************************");
+        for(Header header:response.getAllHeaders()){
+            System.out.println(header.toString());
+        }
+        System.out.println("*****************************");
+    }
 }

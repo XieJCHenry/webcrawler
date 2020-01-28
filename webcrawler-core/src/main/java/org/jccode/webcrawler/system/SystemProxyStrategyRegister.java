@@ -1,8 +1,11 @@
 package org.jccode.webcrawler.system;
 
 import org.apache.commons.lang3.SystemUtils;
+import sun.plugin2.util.SystemUtil;
 
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,7 +24,7 @@ public class SystemProxyStrategyRegister {
      * 主流操作系统无非就Windows、Linux、MacOS，因此不需要太大初始容量
      */
     private static final int DEFAULT_SIZE = 4;
-    private  Map<String, SystemProxyStrategy> proxyStrategyMap;
+    private static Map<String, SystemProxyStrategy> proxyStrategyMap;
 
     private static volatile SystemProxyStrategyRegister INSTANCE;
 
@@ -29,7 +32,7 @@ public class SystemProxyStrategyRegister {
     }
 
     {
-        INSTANCE.proxyStrategyMap = new ConcurrentHashMap<>(DEFAULT_SIZE);
+        proxyStrategyMap = new ConcurrentHashMap<>(DEFAULT_SIZE);
         SystemProxyStrategy windows = new WindowsProxyStrategy();
         SystemProxyStrategy linux = new LinuxProxyStrategy();
         proxyStrategyMap.put("WINDOWS", windows);
@@ -53,12 +56,28 @@ public class SystemProxyStrategyRegister {
     }
 
     public SystemProxyStrategy get(String osName) {
-        return proxyStrategyMap.get(osName.toUpperCase());
+        for (Map.Entry<String, SystemProxyStrategy> entry : proxyStrategyMap.entrySet()) {
+            String s = entry.getKey();
+            String var1, var2;
+            boolean var3 = s.length() < osName.length();
+            if (var3) {
+                var1 = s;
+                var2 = osName;
+            } else {
+                var1 = osName;
+                var2 = s;
+            }
+            if (var2.contains(var1)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
+
 
     public SystemProxyStrategy system() {
         String osName = SystemUtils.OS_NAME.toUpperCase();
-        return proxyStrategyMap.get(osName);
+        return get(osName);
     }
 
     public int size() {
