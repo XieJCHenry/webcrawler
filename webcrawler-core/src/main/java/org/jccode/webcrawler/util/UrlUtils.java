@@ -40,7 +40,7 @@ public class UrlUtils {
             int end;
             char[] values = url.toCharArray();
             for (end = start + 3; end < values.length && values[end] != '/'; end++) ;
-            return url.substring(0, end + 1);
+            return url.substring(0, end);
         }else{
             return url.substring(0,url.indexOf("/"));
         }
@@ -54,4 +54,8 @@ public class UrlUtils {
         int i = host.indexOf("://");
         return (i == -1) ? host : host.substring(i + 3);
     }
+
+//    public static String fixIllegalCharacters(String intput ){
+//
+//    }
 }

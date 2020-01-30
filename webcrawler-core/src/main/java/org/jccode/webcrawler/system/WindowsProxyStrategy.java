@@ -2,7 +2,6 @@ package org.jccode.webcrawler.system;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jccode.webcrawler.model.ProxyModel;
-import org.jccode.webcrawler.util.HttpUtil;
 import org.jccode.webcrawler.util.ProxyUtil;
 
 import java.io.BufferedReader;
@@ -45,7 +44,7 @@ public class WindowsProxyStrategy extends AbstractSystemProxyStrategy {
 
     private ProxyModel getSystemProxy() {
         try {
-            String localEncoding = System.getProperty("file.encoding");
+            String localEncoding = System.getProperty("file.charset");
             Process process = Runtime.getRuntime().exec(WINDOWS_REG_QUERY_COMMAND);
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), localEncoding));

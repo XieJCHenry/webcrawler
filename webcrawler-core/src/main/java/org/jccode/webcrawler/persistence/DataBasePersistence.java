@@ -19,7 +19,7 @@ import java.util.Set;
  **/
 public class DataBasePersistence extends AbstractPersistence implements Runnable {
 
-    private static final String LOCAL_ENCODING = System.getProperty("file.encoding");
+    private static final String LOCAL_ENCODING = System.getProperty("file.charset");
 
     private final String URL;
     private final String DRIVER;

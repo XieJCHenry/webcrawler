@@ -1,6 +1,5 @@
 package org.jccode.webcrawler.parser;
 
-import org.jccode.webcrawler.model.ResultItem;
 import org.jccode.webcrawler.model.WebPage;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -9,7 +8,6 @@ import org.jsoup.select.Elements;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -60,7 +58,7 @@ public class DefaultParser {
 //    private List<String> defaultAll(List<WebPage> webPages) {
 //        List<String> res = new ArrayList<>(8);
 //        for (WebPage page : webPages) {
-//            res.add(page.getContext());
+//            res.add(page.getContent());
 //        }
 //        return res;
 //    }
@@ -68,7 +66,7 @@ public class DefaultParser {
 //    private List<String> regexAll(List<WebPage> webPages) {
 //        List<String> res = new ArrayList<>(8);
 //        for (WebPage page : webPages) {
-//            Matcher matcher = patternString.matcher(page.getContext());
+//            Matcher matcher = patternString.matcher(page.getContent());
 //            boolean found = matcher.find();
 //            while (found) {
 //                res.add(matcher.group(1));
@@ -95,7 +93,7 @@ public class DefaultParser {
     private List<String> selectorAll(List<WebPage> webPages) {
         List<String> res = new ArrayList<>(8);
         for (WebPage page : webPages) {
-            Document document = Jsoup.parse(page.getContext());
+            Document document = Jsoup.parse(page.getContent());
             Elements elements = document.select(cxxSelector);
             res.addAll(elements.eachText());
         }

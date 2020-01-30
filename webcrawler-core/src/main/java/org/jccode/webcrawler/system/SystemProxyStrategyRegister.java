@@ -24,19 +24,19 @@ public class SystemProxyStrategyRegister {
      * 主流操作系统无非就Windows、Linux、MacOS，因此不需要太大初始容量
      */
     private static final int DEFAULT_SIZE = 4;
-    private static Map<String, SystemProxyStrategy> proxyStrategyMap;
+    private static final Map<String, SystemProxyStrategy> proxyStrategyMap=
+            new ConcurrentHashMap<>(DEFAULT_SIZE);
 
     private static volatile SystemProxyStrategyRegister INSTANCE;
 
     private SystemProxyStrategyRegister() {
     }
 
-    {
-        proxyStrategyMap = new ConcurrentHashMap<>(DEFAULT_SIZE);
+    static {
         SystemProxyStrategy windows = new WindowsProxyStrategy();
         SystemProxyStrategy linux = new LinuxProxyStrategy();
-        proxyStrategyMap.put("WINDOWS", windows);
-        proxyStrategyMap.put("LINUX", linux);
+        proxyStrategyMap.putIfAbsent("WINDOWS", windows);
+        proxyStrategyMap.putIfAbsent("LINUX", linux);
     }
 
     public static SystemProxyStrategyRegister getInstance() {

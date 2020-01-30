@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.*;
+import org.jccode.webcrawler.util.UrlUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -31,9 +32,11 @@ public class Task implements Serializable {
 
     private String url;
 
+    private String method;
 
-    private String charset="utf-8";
+    private String charset = "utf-8";
 
+    @Deprecated
     private HttpUriRequest request;
 
     private boolean useProxy;
@@ -41,7 +44,6 @@ public class Task implements Serializable {
     private boolean executeSuccess;
 
     /**
-     *
      * 如果请求的是二进制数据，不使用编码进行解析
      */
     private boolean isBinary;
@@ -51,9 +53,9 @@ public class Task implements Serializable {
      */
     private long priority;
 
-    private Map<String,String> headers = new HashMap<>();
+    private Map<String, String> headers = new HashMap<>();
 
-    private Map<String,String> cookies = new HashMap<>();
+    private Map<String, String> cookies = new HashMap<>();
 
 
     public Task() {
@@ -66,8 +68,8 @@ public class Task implements Serializable {
 
     public Task(String url, String requestMethod) {
         this.url = url;
-        this.request = convertToRequest(requestMethod);
-        this.host = request.getURI().getHost();
+        this.method = requestMethod;
+        this.host = UrlUtils.extractHost(url);
     }
 
     public Task(String url, boolean useProxy) {
@@ -80,26 +82,26 @@ public class Task implements Serializable {
         this.charset = charset;
     }
 
-    private HttpUriRequest convertToRequest(String requestMethod) {
-        switch (requestMethod.toUpperCase()) {
-            case "GET":
-                return new HttpGet(url);
-            case "POST":
-                return new HttpPost(url);
-            case "PUT":
-                return new HttpPut(url);
-            case "DELETE":
-                return new HttpDelete(url);
-            case "PATCH":
-                return new HttpHead(url);
-            case "TRACE":
-                return new HttpTrace(url);
-            case "HEAD":
-                return new HttpPatch(url);
-            default:
-                return new HttpOptions(url);
-        }
-    }
+//    private HttpUriRequest convertToRequest(String requestMethod) {
+//        switch (requestMethod.toUpperCase()) {
+//            case "GET":
+//                return RequestBuilder.get(url).build();
+//            case "POST":
+//                return RequestBuilder.post(url).build();
+//            case "PUT":
+//                return RequestBuilder.put(url).build();
+//            case "DELETE":
+//                return RequestBuilder.delete(url).build();
+//            case "PATCH":
+//                return RequestBuilder.patch(url).build();
+//            case "TRACE":
+//                return RequestBuilder.trace(url).build();
+//            case "HEAD":
+//                return RequestBuilder.head(url).build();
+//            default:
+//                return RequestBuilder.get(url).build();
+//        }
+//    }
 
 
 }

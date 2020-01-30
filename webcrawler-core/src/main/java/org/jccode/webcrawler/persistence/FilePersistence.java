@@ -29,7 +29,7 @@ public class FilePersistence extends AbstractPersistence {
 
     private static final String DEFAULT_PATH = System.getProperty("user.dir");
 
-    private static final String LOCAL_ENCODING = System.getProperty("file.encoding");
+    private static final String LOCAL_ENCODING = System.getProperty("file.charset");
 
     private static final String LOCAL_SEPARATOR = System.getProperty("file.separator");
 

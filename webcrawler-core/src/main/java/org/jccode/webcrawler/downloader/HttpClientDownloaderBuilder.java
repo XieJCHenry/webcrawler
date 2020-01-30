@@ -1,8 +1,7 @@
 package org.jccode.webcrawler.downloader;
 
 import org.apache.http.*;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.CookieStore;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -14,17 +13,18 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
+import org.jccode.webcrawler.conts.HttpClientConstant;
 import org.jccode.webcrawler.conts.HttpConstant;
+import org.jccode.webcrawler.model.HttpClientConfiguration;
 
 import javax.net.ssl.SSLContext;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
 /**
  * HttpClientDownloaderBuilder
@@ -36,33 +36,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  **/
 public class HttpClientDownloaderBuilder {
 
-    private static final int DEFAULT_THREAD_NUM =
-            Runtime.getRuntime().availableProcessors() + 1;
-
-    private static final int DEFAULT_MAX_THREAD_NUM = DEFAULT_THREAD_NUM * 2;
-
-    private static final long DEFAULT_KEEP_ALIVE = 60 * 1000;
-
-    private static final int DEFAULT_TIMEOUT = 5000;
-
-    private static final String DEFAULT_THREAD_NAME = "InternalHttpClientDownloader" +
-            "-Thread";
-
-    private Integer threads;
-
-    private Integer timeOut;
-
-    private ExecutorService executorService;
-
-    private AtomicInteger threadAlive = new AtomicInteger(0);
-
-    private String threadName;
-
     private HttpHost proxy;
+
+    private int maxTotal = 100;
+
+    private PoolingHttpClientConnectionManager connectionManager;
 
     private static volatile HttpClientDownloaderBuilder INSTANCE;
 
     private HttpClientDownloaderBuilder() {
+        initConnectionManager();
     }
 
     public static HttpClientDownloaderBuilder create() {
@@ -77,99 +60,131 @@ public class HttpClientDownloaderBuilder {
     }
 
 
-    public HttpClientDownloaderBuilder setTimeOut(int timeOut) {
-        this.timeOut = timeOut;
-        return this;
-    }
-
-    public HttpClientDownloaderBuilder setThreads(int threads) {
-        this.threads = threads;
-        return this;
-    }
-
-    public HttpClientDownloaderBuilder setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
-        return this;
-    }
-
-    public HttpClientDownloaderBuilder setThreadName(String threadName) {
-        this.threadName = threadName;
-        return this;
-    }
-
-
     public HttpClientDownloaderBuilder setProxy(HttpHost proxy) {
         this.proxy = proxy;
         return this;
     }
 
-    public InternalHttpClientDownloader build() {
-        return new InternalHttpClientDownloader(generateClient());
+    public HttpClientDownloaderBuilder setMaxTotal(int total) {
+        this.maxTotal = total;
+        return this;
     }
 
-    private CloseableHttpClient generateClient() {
+    public InternalHttpClientDownloader build() {
+        return new InternalHttpClientDownloader(defaultClient());
+    }
+
+    private CloseableHttpClient defaultClient() {
         HttpClientBuilder builder = HttpClients.custom();
 
-        SSLContext sslContext = SSLContexts.createSystemDefault();
+        connectionManager.setMaxTotal(500);
+        connectionManager.setDefaultMaxPerRoute(connectionManager.getMaxTotal() / 10);
 
+        // RequestConfig 在HttpRequestConverter中为每一个请求单独设置
+
+
+        return builder
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
+                .setRedirectStrategy(new DefaultRedirectStrategy())
+                // 每个Request都单独设置了UA
+                .setUserAgent(HttpConstant.Header.USER_AGENT)
+                //每个Request都设置了单独的CookieStore
+//                .setDefaultCookieStore(new BasicCookieStore())
+//                .setDefaultRequestConfig(requestConfig)
+                .setRoutePlanner(proxy == null ? null :
+                        new DefaultProxyRoutePlanner(proxy))
+                .setConnectionManager(connectionManager)
+                .setKeepAliveStrategy(keepAliveStrategy())
+//                .useSystemProperties()// 如果设置了jvm的代理参数，设置此项可以强制使用代理
+                .build();
+    }
+
+    /******************************************************************************/
+
+    public CloseableHttpClient build(HttpClientConfiguration configuration) {
+        return customClient(configuration);
+    }
+
+    private CloseableHttpClient customClient(HttpClientConfiguration configuration) {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        connectionManager.setMaxTotal(maxTotal);
+        httpClientBuilder.setConnectionManager(connectionManager);
+        String var1;
+        if ((var1 = configuration.getUserAgent()) != null) {
+            httpClientBuilder.setUserAgent(var1);
+        }
+        if (configuration.isUseGzip()) {
+            httpClientBuilder.addInterceptorFirst((HttpRequestInterceptor) (httpRequest
+                    , httpContext) -> {
+                if (!httpRequest.containsHeader("Accept-Encoding")) {
+                    httpRequest.addHeader("Accept-Encoding", "gzip");
+                }
+            });
+        }
+        httpClientBuilder.setRedirectStrategy(new DefaultRedirectStrategy());
         SocketConfig socketConfig = SocketConfig.custom()
                 .setTcpNoDelay(true)
                 .setSoKeepAlive(true)
-                .setSoTimeout(timeOut != null ? timeOut : DEFAULT_TIMEOUT)
+                .setSoTimeout(configuration.getTimeout())
                 .build();
+        httpClientBuilder.setDefaultSocketConfig(socketConfig);
+        httpClientBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler(configuration.getRetryTimes(), true));
+        httpClientBuilder.setDefaultCookieStore(generateCookies(configuration));
+//        httpClientBuilder.setRoutePlanner(proxy == null ? null :
+//                new DefaultProxyRoutePlanner(proxy));
+        return httpClientBuilder.build();
+    }
 
+    private CookieStore generateCookies(HttpClientConfiguration configuration) {
+        CookieStore cookieStore = new BasicCookieStore();
+        if (!configuration.isDisableCookieManagement() && configuration.getDefaultCookies().size() != 0) {
+            for (Map.Entry<String, String> entry :
+                    configuration.getDefaultCookies().entrySet()) {
+                cookieStore.addCookie(new BasicClientCookie(entry.getKey(),
+                        entry.getValue()));
+            }
+        }
+        return cookieStore;
+    }
+
+    private void initConnectionManager() {
+        SocketConfig socketConfig = SocketConfig.custom()
+                .setTcpNoDelay(true)
+                .setSoKeepAlive(true)
+                .setSoTimeout(HttpClientConstant.Time.DEFAULT_TIMEOUT)
+                .build();
+        SSLContext sslContext = SSLContexts.createSystemDefault();
         Registry<ConnectionSocketFactory> socketFactoryRegistry =
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.INSTANCE)
                         .register("https", new SSLConnectionSocketFactory(sslContext))
                         .build();
-
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setCharset(StandardCharsets.UTF_8)
                 .setMalformedInputAction(CodingErrorAction.IGNORE)
                 .setUnmappableInputAction(CodingErrorAction.IGNORE)
                 .build();
 
-        PoolingHttpClientConnectionManager manager =
-                new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        manager.setMaxTotal(500);
-        manager.setDefaultMaxPerRoute(manager.getMaxTotal() / 10);
-        manager.setDefaultSocketConfig(socketConfig);
-        manager.setDefaultConnectionConfig(connectionConfig);
-
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setCookieSpec(CookieSpecs.DEFAULT)
-                .setExpectContinueEnabled(true)
-                .setRedirectsEnabled(true)
-                .build();
+        connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        connectionManager.setDefaultSocketConfig(socketConfig);
+        connectionManager.setDefaultConnectionConfig(connectionConfig);
+    }
 
 
-        ConnectionKeepAliveStrategy keepAliveStrategy = (httpResponse, httpContext) -> {
-            HeaderElementIterator iter = new BasicHeaderElementIterator(
-                    httpResponse.headerIterator(HTTP.CONN_KEEP_ALIVE));
-            while (iter.hasNext()) {
-                HeaderElement e = iter.nextElement();
+    private ConnectionKeepAliveStrategy keepAliveStrategy() {
+        return (httpResponse, httpContext) -> {
+            HeaderElementIterator iterator =
+                    new BasicHeaderElementIterator(httpResponse.headerIterator(HTTP.CONN_KEEP_ALIVE));
+            while (iterator.hasNext()) {
+                HeaderElement e = iterator.nextElement();
                 String param = e.getName();
                 String value = e.getValue();
                 if (value != null && "timeout".equalsIgnoreCase(param)) {
                     return Long.parseLong(value) * 1000;
                 }
             }
-            return DEFAULT_KEEP_ALIVE;
+            return HttpClientConstant.Time.DEFAULT_KEEP_ALIVE;
         };
-
-        return builder
-                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
-                .setRedirectStrategy(new DefaultRedirectStrategy())
-                .setUserAgent(HttpConstant.Header.USER_AGENT)
-                .setDefaultCookieStore(new BasicCookieStore())
-                .setDefaultRequestConfig(requestConfig)
-                .setRoutePlanner(proxy == null ? null :
-                        new DefaultProxyRoutePlanner(proxy))
-                .setConnectionManager(manager)
-                .setKeepAliveStrategy(keepAliveStrategy)
-//                .useSystemProperties()// 如果设置了jvm的代理参数，设置此项可以强制使用代理
-                .build();
     }
 
 }

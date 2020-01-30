@@ -21,7 +21,7 @@ public class LinuxProxyStrategy extends AbstractSystemProxyStrategy {
 
     @Override
     public ProxyModel inspect() {
-        String localEncoding = System.getProperty("file.encoding");
+        String localEncoding = System.getProperty("file.charset");
 
         return null;
     }

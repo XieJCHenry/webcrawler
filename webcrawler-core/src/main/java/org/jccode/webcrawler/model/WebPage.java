@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * WebPage
@@ -24,56 +27,28 @@ public class WebPage {
     private String site;
     private String path = "";
     private int status;
-    private String context;
-    private String encoding;
+    private String title;
+    private String content;
+    private String rawText;
+    private String charSet;
     private String contentType;
     private LocalDateTime time;
+    private boolean downloadSuccess;
+    private boolean isBinary;
+    /**
+     * 存储二进制数据？
+     */
+    private byte[] bytes;
+
+    private Map<String, List<String>> headers = new HashMap<>();
 
     public WebPage() {
-        time = LocalDateTime.now();
     }
 
-//    private Pattern patternString;
-//    private String cxxSelector;
-//
-//    public WebPage regex(String patternString) {
-//        this.patternString = Pattern.compile(patternString);
-//        return this;
-//    }
-//
-//    public WebPage selector(String cxxSelector) {
-//        this.cxxSelector = cxxSelector;
-//        return this;
-//    }
-//
-//    public List<String> all() {
-//        if (patternString != null) {
-//            return regexAll();
-//        } else if (cxxSelector != null) {
-//            return selectorAll();
-//        } else {
-//            return Collections.singletonList(context);
-//        }
-//    }
-//
-//    private List<String> regexAll() {
-//        List<String> res = new ArrayList<>(8);
-//        Matcher matcher = patternString.matcher(context);
-//        boolean found = matcher.find();
-//        while (found) {
-//            res.add(matcher.group(1));
-//            found = matcher.find();
-//        }
-//        return res;
-//    }
-//
-//    private List<String> selectorAll() {
-//        Document document = Jsoup.single(context);
-//        Elements elements = document.select(cxxSelector);
-//        return elements.eachText();
-//    }
-//
-//    private List<String> xpathAll() {
-//        return Collections.emptyList();
-//    }
+    public static WebPage fail(){
+        WebPage page = new WebPage();
+        page.setDownloadSuccess(false);
+        page.setTime(LocalDateTime.now());
+        return page;
+    }
 }

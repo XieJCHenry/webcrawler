@@ -1,17 +1,18 @@
 package org.jccode.webcrawler.downloader.samples;
 
-import lombok.ToString;
 import org.apache.http.HttpHost;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.jccode.webcrawler.downloader.HttpClientDownloader;
 import org.jccode.webcrawler.downloader.MultiTasksHttpDownloader;
 import org.jccode.webcrawler.model.Task;
 import org.jccode.webcrawler.model.WebPage;
 import org.junit.Test;
-import sun.net.www.http.HttpClient;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -63,8 +64,22 @@ public class TestDownloader {
         pages.forEach(page -> {
             System.out.println("***************************************");
             System.out.println(page.getSite() + page.getPath());
-            System.out.println(page.getContext().length());
+            System.out.println(page.getContent().length());
         });
         downloader.close();
+    }
+
+    @Test
+    public void testExtractHeaders() throws IOException {
+        Task[] tasks = new Task[]{
+                new Task("https://www.baidu.com")
+        };
+        CloseableHttpClient client= HttpClientBuilder.create().build();
+        CloseableHttpResponse response = client.execute(new HttpGet(tasks[0].getUrl()));
+        System.out.println(response.getEntity().getContentType());
+        System.out.println(response.getEntity().getContentEncoding());  // TODO 这里会取得null
+        response.close();
+        client.close();
+
     }
 }

@@ -177,10 +177,10 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
             // set content-type
             var1 = response.getFirstHeader("Content-Type").getValue();
             webPage.setContentType(var1.substring(0, var1.indexOf(";")));
-            // set encoding
-//            webPage.setEncoding(var1.substring(var1.indexOf("charset=" + 1)));
-            // set context
-            webPage.setContext(EntityUtils.toString(response.getEntity()));
+            // set charset
+//            webPage.setCharset(var1.substring(var1.indexOf("charset=" + 1)));
+            // set content
+            webPage.setContent(EntityUtils.toString(response.getEntity()));
             return webPage;
         }
     }

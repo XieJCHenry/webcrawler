@@ -1,15 +1,24 @@
 package org.jccode.webcrawler.downloader;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.jccode.webcrawler.model.ProxyModel;
-import org.jccode.webcrawler.model.ResultItem;
-import org.jccode.webcrawler.model.Task;
-import org.jccode.webcrawler.model.WebPage;
+import org.jccode.webcrawler.conts.HttpConstant;
+import org.jccode.webcrawler.model.*;
 import org.jccode.webcrawler.system.SystemProxyStrategy;
 import org.jccode.webcrawler.system.SystemProxyStrategyRegister;
+import org.jccode.webcrawler.util.HttpUtils;
+import org.jccode.webcrawler.util.IOUtils;
+import org.jccode.webcrawler.util.ProxyUtil;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HttpClientDownloader
@@ -72,10 +81,6 @@ public class HttpClientDownloader {
         return webPageList;
     }
 
-//    public List<WebPage> download(List<Task> tasks) {
-//
-//    }
-
     public void close() {
         if (proxyClient != null) {
             proxyClient.close();
@@ -84,4 +89,87 @@ public class HttpClientDownloader {
             directClient.close();
         }
     }
+
+    /********************************************************************/
+
+    private final Map<String, CloseableHttpClient> httpClients =
+            new ConcurrentHashMap<>();
+
+    private ProxyModel proxy;
+
+    private HttpClientDownloaderBuilder downloaderBuilder =
+            HttpClientDownloaderBuilder.create();
+    private HttpRequestConverter requestConverter = new HttpRequestConverter();
+
+
+    public WebPage download(Task task, HttpClientConfiguration configuration) {
+        CloseableHttpResponse response;
+        CloseableHttpClient httpClient = getHttpClient(configuration);
+        HttpClientRequestContext requestContext = requestConverter.convert(task,
+                configuration, proxy);
+        WebPage webPage = WebPage.fail();
+        try {
+            response = httpClient.execute(requestContext.getRequest(),
+                    requestContext.getContext());
+            webPage = handleResponse(response, task);
+            logger.info("Download Page success: " + webPage.getSite() + webPage.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.warn("Download Page failed: " + webPage.getSite() + webPage.getPath(), e);
+            return webPage;
+        }
+        return webPage;
+    }
+
+
+    private CloseableHttpClient getHttpClient(HttpClientConfiguration configuration) {
+        String host = configuration.getHost();
+        CloseableHttpClient client = httpClients.get(host);
+        if (client == null) {
+            client = downloaderBuilder.build(configuration);
+            httpClients.putIfAbsent(host, client);
+        }
+        return client;
+    }
+
+    private WebPage handleResponse(CloseableHttpResponse response, Task task) {
+        HttpEntity entity = response.getEntity();
+        WebPage webPage = new WebPage();
+        try {
+            if (entity.getContentType().getValue().contains(HttpConstant.ContentType.TEXT)) {
+                String rawText = EntityUtils.toString(entity);
+                webPage.setBinary(false);
+                webPage.setRawText(rawText);
+                webPage.setTitle(HttpUtils.getTitle(rawText));
+                webPage.setContent(HttpUtils.getContent(rawText));
+                webPage.setContentType(entity.getContentType().getValue());
+            } else {
+                webPage.setBinary(true);
+                webPage.setContentType(HttpConstant.ContentType.MULTIPART);
+                webPage.setBytes(IOUtils.toByteArray(entity.getContent()));
+            }
+            webPage.setSite(task.getHost());
+            webPage.setPath(task.getUrl());
+            webPage.setStatus(response.getStatusLine().getStatusCode());
+            webPage.setHeaders(HttpUtils.convertHeaders(response.getAllHeaders()));
+            webPage.setTime(LocalDateTime.now());
+            webPage.setDownloadSuccess(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return webPage;
+    }
+
+    public HttpClientDownloader setProxy(ProxyModel proxy) {
+        if (proxy != null || ProxyUtil.validateProxy(proxy.getHost(), proxy.getPort())) {
+            this.proxy = proxy;
+        } else {  // 检查系统代理是否可用
+            ProxyModel systemProxy = register.system().inspect();
+            if (ProxyUtil.validateProxy(systemProxy.getHost(), systemProxy.getPort())) {
+                this.proxy = systemProxy;
+            }
+        }
+        return this;
+    }
+
 }

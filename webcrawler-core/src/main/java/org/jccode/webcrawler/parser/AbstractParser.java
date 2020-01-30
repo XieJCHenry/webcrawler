@@ -26,7 +26,7 @@ public abstract class AbstractParser /*implements Parser*/ {
     public final List<ResultItem> all(List<WebPage> webPages) {
         List<ResultItem> res = new ArrayList<>(webPages.size());
         for (WebPage page : webPages) {
-            res.addAll(single(page, parse(page.getContext())));
+            res.addAll(single(page, parse(page.getContent())));
         }
         return res;
     }
@@ -41,7 +41,7 @@ public abstract class AbstractParser /*implements Parser*/ {
 
     private List<ResultItem> single(WebPage webPage, List<String> extracts) {
         if (extracts.size() <= 1) {
-            return Collections.singletonList(initItem(webPage, webPage.getContext()));
+            return Collections.singletonList(initItem(webPage, webPage.getContent()));
         } else {
             List<ResultItem> itemList = new ArrayList<>(extracts.size());
             for (String extract : extracts) {
@@ -53,7 +53,7 @@ public abstract class AbstractParser /*implements Parser*/ {
 
     private ResultItem initItem(WebPage webPage, String extract) {
         ResultItem item = new ResultItem();
-        item.setCharSet(webPage.getEncoding())
+        item.setCharSet(webPage.getCharSet())
                 .setUrl(webPage.getSite() + "\\" + webPage.getPath())
                 .setConserved(false)
                 .setContext(extract)
