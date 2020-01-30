@@ -3,18 +3,8 @@ package org.jccode.webcrawler.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * WebPage
@@ -43,47 +33,47 @@ public class WebPage {
         time = LocalDateTime.now();
     }
 
-    private Pattern pattern;
-    private String cxxSelector;
-
-    public WebPage regex(String pattern) {
-        this.pattern = Pattern.compile(pattern);
-        return this;
-    }
-
-    public WebPage selector(String cxxSelector) {
-        this.cxxSelector = cxxSelector;
-        return this;
-    }
-
-    public List<String> all() {
-        if (pattern != null) {
-            return regexAll();
-        } else if (cxxSelector != null) {
-            return selectorAll();
-        } else {
-            return Collections.singletonList(context);
-        }
-    }
-
-    private List<String> regexAll() {
-        List<String> res = new ArrayList<>(8);
-        Matcher matcher = pattern.matcher(context);
-        boolean found = matcher.find();
-        while (found) {
-            res.add(matcher.group(1));
-            found = matcher.find();
-        }
-        return res;
-    }
-
-    private List<String> selectorAll() {
-        Document document = Jsoup.parse(context);
-        Elements elements = document.select(cxxSelector);
-        return elements.eachText();
-    }
-
-    private List<String> xpathAll() {
-        return Collections.emptyList();
-    }
+//    private Pattern patternString;
+//    private String cxxSelector;
+//
+//    public WebPage regex(String patternString) {
+//        this.patternString = Pattern.compile(patternString);
+//        return this;
+//    }
+//
+//    public WebPage selector(String cxxSelector) {
+//        this.cxxSelector = cxxSelector;
+//        return this;
+//    }
+//
+//    public List<String> all() {
+//        if (patternString != null) {
+//            return regexAll();
+//        } else if (cxxSelector != null) {
+//            return selectorAll();
+//        } else {
+//            return Collections.singletonList(context);
+//        }
+//    }
+//
+//    private List<String> regexAll() {
+//        List<String> res = new ArrayList<>(8);
+//        Matcher matcher = patternString.matcher(context);
+//        boolean found = matcher.find();
+//        while (found) {
+//            res.add(matcher.group(1));
+//            found = matcher.find();
+//        }
+//        return res;
+//    }
+//
+//    private List<String> selectorAll() {
+//        Document document = Jsoup.single(context);
+//        Elements elements = document.select(cxxSelector);
+//        return elements.eachText();
+//    }
+//
+//    private List<String> xpathAll() {
+//        return Collections.emptyList();
+//    }
 }

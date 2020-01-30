@@ -1,16 +1,12 @@
 package org.jccode.webcrawler.util;
 
 import org.apache.http.Header;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.jccode.webcrawler.model.ProxyModel;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * HttpUtil
@@ -27,32 +23,6 @@ public class HttpUtil {
     private HttpUtil() {
     }
 
-    public static boolean proxyReliable(ProxyModel proxy) {
-        return proxyReliable(proxy.getHost(), proxy.getPort());
-    }
-
-    public static boolean proxyReliable(String host, int port) {
-        CloseableHttpClient client = HttpClientBuilder.create()
-                .setProxy(new HttpHost(host, port))
-                .build();
-        HttpGet get = new HttpGet(DEFAULT_REQUEST_URL);
-        try (CloseableHttpResponse response = client.execute(get)) {
-            int code = response.getStatusLine().getStatusCode();
-            return code >= 200 && code < 300;
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                get.abort();
-                client.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
 
     public static boolean isOk(HttpResponse response) {
         int code = response.getStatusLine().getStatusCode();
@@ -69,11 +39,20 @@ public class HttpUtil {
         return code >= 400;
     }
 
-    public static void printHeaders(HttpResponse response){
+    public static void printHeaders(HttpResponse response) {
         System.out.println("*****************************");
-        for(Header header:response.getAllHeaders()){
+        for (Header header : response.getAllHeaders()) {
             System.out.println(header.toString());
         }
         System.out.println("*****************************");
+    }
+
+    public static Map<String, List<String>> convertHeaders(Header[] headers) {
+        Map<String, List<String>> headersMap = new HashMap<>(headers.length);
+        for (Header header : headers) {
+            List<String> values = headersMap.computeIfAbsent(header.getName(), k -> new ArrayList<>());
+            values.add(header.getValue());
+        }
+        return headersMap;
     }
 }

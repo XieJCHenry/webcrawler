@@ -28,10 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * HttpClientDownloaderBuilder
- * <p>
- * builder创建client实例，每个实例都可以进行多线程下载。
- * 最初目的是为了整合三个搜索引擎的结果，考虑到后期可能扩展到可以自定义数据来源网站，因此
- * 采用的方案是：“一个数据源网站对应一个client”。对于每一次搜索
  *
  * @Description
  * @Author jc-henry
@@ -61,8 +57,6 @@ public class HttpClientDownloaderBuilder {
     private AtomicInteger threadAlive = new AtomicInteger(0);
 
     private String threadName;
-
-//    private CloseableHttpClient httpClient;
 
     private HttpHost proxy;
 
@@ -164,12 +158,11 @@ public class HttpClientDownloaderBuilder {
             return DEFAULT_KEEP_ALIVE;
         };
 
-        BasicCookieStore cookieStore = new BasicCookieStore();
-        CloseableHttpClient client = builder
+        return builder
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                 .setRedirectStrategy(new DefaultRedirectStrategy())
                 .setUserAgent(HttpConstant.Header.USER_AGENT)
-                .setDefaultCookieStore(cookieStore)
+                .setDefaultCookieStore(new BasicCookieStore())
                 .setDefaultRequestConfig(requestConfig)
                 .setRoutePlanner(proxy == null ? null :
                         new DefaultProxyRoutePlanner(proxy))
@@ -177,7 +170,6 @@ public class HttpClientDownloaderBuilder {
                 .setKeepAliveStrategy(keepAliveStrategy)
 //                .useSystemProperties()// 如果设置了jvm的代理参数，设置此项可以强制使用代理
                 .build();
-        return client;
     }
 
 }

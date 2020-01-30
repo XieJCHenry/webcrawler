@@ -101,4 +101,20 @@ public class ResultItem {
         return this;
     }
 
+    public static EmptyResultItem emptyResultItem() {
+        return new EmptyResultItem();
+    }
+
+    private static class EmptyResultItem extends ResultItem {
+        EmptyResultItem() {
+            super();
+            this.setCharSet(null);
+            this.setContext(null);
+            this.setItemName("EmptyResultItem");
+            this.setConserved(false);
+            this.setContentType(null);
+            this.setUrl(null);
+        }
+    }
+
 }

@@ -7,7 +7,7 @@ import org.jccode.webcrawler.persistence.Persistence;
 /**
  * Spider
  *
- * @Description TODO
+ * @Description TODO 爬虫主类
  * @Author jc-henry
  * @Date 2020/1/28 13:52
  * @Version 1.0
@@ -17,5 +17,20 @@ public class Spider {
     private HttpClientDownloader downloader;
     private Persistence persistence;
     private Parser pageParser;
+
+    public Spider() {
+        downloader = new HttpClientDownloader();
+    }
+
+    public static Spider custom() {
+        return new Spider();
+    }
+
+    public Spider persistence(Persistence persistence) {
+        this.persistence = persistence;
+        return this;
+    }
+
+
 
 }

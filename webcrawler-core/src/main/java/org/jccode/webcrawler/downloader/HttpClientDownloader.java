@@ -49,9 +49,10 @@ public class HttpClientDownloader {
     public List<WebPage> download(Task[] tasks) {
         List<Task> directRequests = new ArrayList<>();
         List<Task> proxyRequests = new ArrayList<>();
+        List<WebPage> webPageList = new ArrayList<>(tasks.length);
         int failCount = 0;
         for (Task task : tasks) {
-            if (task.useProxy()) {
+            if (task.isUseProxy()) {
                 if (proxyClient != null) {
                     proxyRequests.add(task);
                 } else {
@@ -61,7 +62,6 @@ public class HttpClientDownloader {
                 directRequests.add(task);
             }
         }
-        List<WebPage> webPageList = new ArrayList<>(tasks.length);
         if (proxyClient != null && !proxyRequests.isEmpty()) {
             webPageList.addAll(proxyClient.download(proxyRequests));
         } else {
@@ -71,6 +71,10 @@ public class HttpClientDownloader {
         webPageList.sort(((o1, o2) -> o2.getTime().compareTo(o1.getTime())));
         return webPageList;
     }
+
+//    public List<WebPage> download(List<Task> tasks) {
+//
+//    }
 
     public void close() {
         if (proxyClient != null) {

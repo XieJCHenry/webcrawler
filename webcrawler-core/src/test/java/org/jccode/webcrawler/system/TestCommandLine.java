@@ -160,14 +160,14 @@ public class TestCommandLine {
         System.out.println(SystemUtils.IS_OS_MAC);
     }
 
-    @Test
-    public void testSystemDefaultCharset(){
-        System.out.println(System.getProperty("file.encoding"));
-    }
 
     @Test
-    public void testSystemProjectDirectory(){
-        System.out.println(System.getProperty("user.dir"));
+    public void testSystemProperties() {
+        Properties properties = System.getProperties();
+        Set<Map.Entry<Object, Object>> entries = properties.entrySet();
+        for (Map.Entry<Object, Object> entry : entries) {
+            System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
     }
 
 

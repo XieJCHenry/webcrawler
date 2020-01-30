@@ -32,10 +32,10 @@ public class TestParser {
         pages.forEach(page -> {
             System.out.println("***************************************");
             System.out.println(page.getSite() + page.getPath());
-            List<String> list = page.regex(RegexPattern.URL.getPattern()).all();
-            for (String s : list) {
-                System.out.println("url = " + s);
-            }
+//            List<String> list = page.regex(RegexPattern.URL.getPattern()).all();
+//            for (String s : list) {
+//                System.out.println("url = " + s);
+//            }
         });
         downloader.close();
     }

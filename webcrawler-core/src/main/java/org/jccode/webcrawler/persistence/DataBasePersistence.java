@@ -42,7 +42,7 @@ public class DataBasePersistence extends AbstractPersistence implements Runnable
     }
 
 
-    @Override
+//    @Override
     protected void process(ResultItem resultItem) {
 
     }

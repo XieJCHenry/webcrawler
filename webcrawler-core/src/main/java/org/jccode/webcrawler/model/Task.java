@@ -1,9 +1,14 @@
 package org.jccode.webcrawler.model;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.*;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -16,21 +21,40 @@ import java.util.Objects;
  * @Date 2019/12/5 15:25
  * @Version 1.0
  **/
+@Data
 @ToString
 @EqualsAndHashCode
-public class Task {
+public class Task implements Serializable {
+
 
     private String host;
 
     private String url;
 
-    private String charset;
+
+    private String charset="utf-8";
 
     private HttpUriRequest request;
 
     private boolean useProxy;
 
     private boolean executeSuccess;
+
+    /**
+     *
+     * 如果请求的是二进制数据，不使用编码进行解析
+     */
+    private boolean isBinary;
+
+    /**
+     * priority of a task, the bigger will be processed earlier.
+     */
+    private long priority;
+
+    private Map<String,String> headers = new HashMap<>();
+
+    private Map<String,String> cookies = new HashMap<>();
+
 
     public Task() {
     }
@@ -77,45 +101,5 @@ public class Task {
         }
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public HttpUriRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(HttpUriRequest request) {
-        this.request = request;
-    }
-
-    public boolean useProxy() {
-        return useProxy;
-    }
-
-    public void setUseProxy(boolean useProxy) {
-        this.useProxy = useProxy;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public boolean isExecuteSuccess() {
-        return executeSuccess;
-    }
-
-    public void setExecuteSuccess(boolean executeSuccess) {
-        this.executeSuccess = executeSuccess;
-    }
-
-    //    public void setHost(String host) {
-//        String var1 = this.request.getURI().getHost();
-//        this.host = var1.equals(host) ? host : var1;
-//    }
 
 }

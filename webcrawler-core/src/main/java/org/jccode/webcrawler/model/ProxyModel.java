@@ -20,14 +20,33 @@ public class ProxyModel {
 
     private String host;
     private int port;
-    private Boolean ifReliable;
+    private String username;
+    private String password;
+    private Boolean reliable;
 
-    private ProxyModel() {
-    }
 
+    /**
+     * 本地代理
+     *
+     * @param host
+     * @param port
+     */
     public ProxyModel(String host, int port) {
         this.host = host;
         this.port = port;
     }
 
+    /**
+     * 远程代理
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     */
+    public ProxyModel(String host, int port, String username, String password) {
+        this.host = host;
+        this.port = port;
+        this.username = username;
+        this.password = password;
+    }
 }

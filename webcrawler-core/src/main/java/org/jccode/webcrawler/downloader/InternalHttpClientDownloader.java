@@ -1,31 +1,23 @@
 package org.jccode.webcrawler.downloader;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.*;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
-import org.checkerframework.checker.units.qual.C;
-import org.jccode.webcrawler.http.CustomResponseHandler;
-import org.jccode.webcrawler.model.ResultItem;
 import org.jccode.webcrawler.model.Task;
 import org.jccode.webcrawler.model.WebPage;
-import org.jccode.webcrawler.util.HttpUtil;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * InternalHttpClientDownloader
  * <p>
  * 根据传入的tasksList开启子线程进行下载
  * <p>
- *
+ * <p>
  * 存在问题：
  * 对于每一个Task，都有一个useProxy的标志，这个标志如果为true，代表需要用到Proxy，
  * 否则不需要用Proxy。但问题在于，CloseableHttpClient创建后就无法改变，也就是说不能在
@@ -52,13 +44,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  **/
 public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
-    private final Logger log = Logger.getLogger(InternalHttpClientDownloader.class);
+    private String threadName;
     private CloseableHttpClient httpClient;
-//    private CustomResponseHandler responseHandler = new CustomResponseHandler();
 
     private ExecutorService executorService;
-    private AtomicInteger threadAlive = new AtomicInteger(0);
-    private String threadName;
     private int threadNum;
     private int maxThreadNum;
 
@@ -67,7 +56,7 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
         this.threadName = "InternalHttpClientDownloader-Thread";
         this.threadNum = 4;
         this.maxThreadNum = threadNum * 2;
-        generateExecutorService();
+        initExecutorService();
     }
 
     public InternalHttpClientDownloader(CloseableHttpClient httpClient,
@@ -101,7 +90,7 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
             try {
                 List<Future<WebPage>> futures = executorService.invokeAll(tasksQueue);
                 for (Future<WebPage> future : futures) {
-                    if(future.isDone()){
+                    if (future.isDone()) {
                         webPageList.add(future.get());
                     }
                 }
@@ -113,15 +102,6 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
         }
     }
 
-//    public ResultItem download(Task task) {
-//        try {
-//            DownloaderTask downloaderTask = new DownloaderTask(task, httpClient);
-//            return downloaderTask.call();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return new ResultItem();
-//    }
 
     @Override
     public void close() {
@@ -141,7 +121,7 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
     /*=====================================================================*/
 
 
-    private void generateExecutorService() {
+    private void initExecutorService() {
         ThreadFactory factory = new ThreadFactoryBuilder()
                 .setNameFormat(threadName).build();
         this.executorService = new ThreadPoolExecutor(threadNum, maxThreadNum,
@@ -167,7 +147,7 @@ public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
         @Override
         public WebPage call() throws Exception {
-            // TODO 这里调用httpClient.execute方法进行下载
+            // 调用httpClient.execute方法进行下载
             CloseableHttpResponse response = httpClient.execute(task.getRequest());
             WebPage webPage = initWebPage(response);
             response.close();

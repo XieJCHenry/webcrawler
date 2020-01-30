@@ -3,6 +3,7 @@ package org.jccode.webcrawler.system;
 import org.apache.commons.lang3.StringUtils;
 import org.jccode.webcrawler.model.ProxyModel;
 import org.jccode.webcrawler.util.HttpUtil;
+import org.jccode.webcrawler.util.ProxyUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,7 +36,8 @@ public class WindowsProxyStrategy extends AbstractSystemProxyStrategy {
     public ProxyModel inspect() {
         ProxyModel systemProxy = getSystemProxy();
         if (systemProxy != null) {
-            systemProxy.setIfReliable(HttpUtil.proxyReliable(systemProxy));
+            systemProxy.setReliable(ProxyUtil.validateProxy(
+                    systemProxy.getHost(), systemProxy.getPort()));
             return systemProxy;
         }
         return null;
