@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * <p>
  * 用于解析文本，提取url等
  *
- * @Description TODO 是否有必要？
+ * @Description TODO 解析页面
  * @Author jc-henry
  * @Date 2020/1/27 13:18
  * @Version 1.0
@@ -32,56 +32,12 @@ public class DefaultParser {
 //        return this;
 //    }
 
-    private Pattern pattern;
+    private List<Pattern> regexPattern;
     private String cxxSelector;
 
-    public DefaultParser regex(String pattern) {
-        this.pattern = Pattern.compile(pattern);
-        return this;
-    }
 
-    public DefaultParser selector(String cxxSelector) {
-        this.cxxSelector = cxxSelector;
-        return this;
-    }
 
-//    public List<String> all(List<WebPage> webPages) {
-//        if (patternString != null) {
-//            return regexAll(webPages);
-//        } else if (cxxSelector != null) {
-//            return selectorAll(webPages);
-//        } else {
-//            return defaultAll(webPages);
-//        }
-//    }
-//
-//    private List<String> defaultAll(List<WebPage> webPages) {
-//        List<String> res = new ArrayList<>(8);
-//        for (WebPage page : webPages) {
-//            res.add(page.getContent());
-//        }
-//        return res;
-//    }
-//
-//    private List<String> regexAll(List<WebPage> webPages) {
-//        List<String> res = new ArrayList<>(8);
-//        for (WebPage page : webPages) {
-//            Matcher matcher = patternString.matcher(page.getContent());
-//            boolean found = matcher.find();
-//            while (found) {
-//                res.add(matcher.group(1));
-//                found = matcher.find();
-//            }
-//        }
-//        return res;
-//    }
 
-//    public List<ResultItem> all(List<WebPage> webPages){
-//
-//        for (WebPage page : webPages) {
-//
-//        }
-//    }
 
     /**
      * 还需完善

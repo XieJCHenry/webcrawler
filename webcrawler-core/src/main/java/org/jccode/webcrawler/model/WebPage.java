@@ -1,13 +1,9 @@
 package org.jccode.webcrawler.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * WebPage
@@ -18,14 +14,12 @@ import java.util.Map;
  * @Version 1.0
  **/
 @Data
-@ToString(exclude = {"bytes","content","rawText"})
+@ToString(exclude = {"bytes", "content", "rawText"})
 @EqualsAndHashCode
 public class WebPage {
 
-    // url = site + "/" + path;
-
     private String site;
-    private String path = "";
+    private String path;
     private int status;
     private long contentLength;
     private String title;
@@ -41,15 +35,47 @@ public class WebPage {
      */
     private byte[] bytes;
 
-    private Map<String, List<String>> headers = new HashMap<>();
+    /**
+     * LinkedHashMap
+     */
+    private Map<String, String> headers;
 
     public WebPage() {
     }
 
-    public static WebPage fail(){
+    public static WebPage fail() {
         WebPage page = new WebPage();
         page.setDownloadSuccess(false);
         page.setTime(LocalDateTime.now());
         return page;
+    }
+
+    public static EmptyWebPage emptyPage() {
+        return new EmptyWebPage();
+    }
+
+    @Getter
+    static class EmptyWebPage extends WebPage {
+        private final String site = null;
+        private final String content = null;
+        private final int status = -1;
+        private final long contentLength = -1;
+        private final boolean isBinary = true;
+        private final boolean downloadSuccess = false;
+        private final LocalDateTime time;
+
+        EmptyWebPage() {
+            this.time = LocalDateTime.now();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o == this;
+        }
+
+        @Override
+        public int hashCode() {
+            return time.hashCode();
+        }
     }
 }

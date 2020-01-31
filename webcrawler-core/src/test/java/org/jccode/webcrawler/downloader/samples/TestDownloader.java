@@ -71,13 +71,16 @@ public class TestDownloader {
     public void testDownloadMP3() {
         String[] paths = new String[]{
                 "http://music.163.com/song/media/outer/url?id=1352968920.mp3",
-                "http://music.163.com/song/media/outer/url?id=1352968928.mp3"};
-        Task task = new Task(paths[0]);
+                "http://music.163.com/song/media/outer/url?id=1352968928.mp3",
+                "http://music.163.com/song/media/outer/url?id=28391671.mp3",
+                "http://music.163.com/song/media/outer/url?id=65538.mp3"};
+        Task task = new Task(paths[3]);
         HttpClientConfiguration configuration = HttpClientConfiguration.custom()
                 .setHost(task.getHost());
         HttpClientDownloader downloader = new HttpClientDownloader().setProxy(null);
         WebPage page = downloader.download(task, configuration);
-        FilePersistence filePersistence = new FilePersistence("D:\\test", "mp3");
+        System.out.println(page);
+        FilePersistence filePersistence = new FilePersistence("D:\\test", "不要说话", "mp3");
         filePersistence.process(page);
     }
 

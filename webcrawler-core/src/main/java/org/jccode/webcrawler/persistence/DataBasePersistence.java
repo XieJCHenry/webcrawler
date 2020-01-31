@@ -1,12 +1,5 @@
 package org.jccode.webcrawler.persistence;
 
-import org.jccode.webcrawler.model.ResultItem;
-
-import java.io.*;
-import java.util.Enumeration;
-import java.util.Properties;
-import java.util.Set;
-
 /**
  * DataBasePersistence
  * <p>
@@ -42,8 +35,5 @@ public class DataBasePersistence extends AbstractPersistence implements Runnable
     }
 
 
-//    @Override
-    protected void process(ResultItem resultItem) {
 
-    }
 }

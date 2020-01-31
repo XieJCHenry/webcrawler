@@ -46,6 +46,8 @@ public class HttpConstant {
         public static final String APPLICATION_FORM = "application/x-www-form" +
                 "-urlencoded";  // 表单数据
         public static final String MULTIPART = "multipart/form-data";   // 上传数据
+
+        public static final String UNKNOWN = "unknown";
     }
 
     private HttpConstant() {

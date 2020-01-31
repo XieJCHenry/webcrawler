@@ -1,14 +1,13 @@
 package org.jccode.webcrawler.downloader;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.jccode.webcrawler.conts.HttpConstant;
 import org.jccode.webcrawler.model.*;
-import org.jccode.webcrawler.system.SystemProxyStrategy;
 import org.jccode.webcrawler.system.SystemProxyStrategyRegister;
 import org.jccode.webcrawler.util.HttpUtils;
 import org.jccode.webcrawler.util.IOUtils;
@@ -22,8 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HttpClientDownloader
- * <p>
- * 包装器模式：包含两个HttpClientDownloader，一个使用代理，一个不使用
  *
  * @Description
  * @Author jc-henry
@@ -32,15 +29,19 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class HttpClientDownloader {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpClientDownloader.class);
+    private static final Logger logger =
+            LoggerFactory.getLogger(HttpClientDownloader.class);
 
-    private final SystemProxyStrategyRegister register = SystemProxyStrategyRegister.getInstance();
+    private final SystemProxyStrategyRegister register =
+            SystemProxyStrategyRegister.getInstance();
 
-    private final Map<String, CloseableHttpClient> httpClients = new ConcurrentHashMap<>();
+    private final Map<String, CloseableHttpClient> httpClients =
+            new ConcurrentHashMap<>();
 
     private ProxyModel proxy;
 
-    private HttpClientDownloaderBuilder downloaderBuilder = HttpClientDownloaderBuilder.create();
+    private HttpClientDownloaderBuilder downloaderBuilder =
+            HttpClientDownloaderBuilder.create();
     private HttpRequestConverter requestConverter = new HttpRequestConverter();
 
     /**
@@ -64,8 +65,9 @@ public class HttpClientDownloader {
     }
 
     public WebPage download(Task task, HttpClientConfiguration configuration) {
-        CloseableHttpResponse response;
+        CloseableHttpResponse response = null;
         CloseableHttpClient httpClient = getHttpClient(configuration);
+        // 在此处解决代理问题：为每一个请求单独设置代理
         HttpClientRequestContext requestContext = requestConverter.convert(task,
                 configuration, proxy);
         WebPage webPage = WebPage.fail();
@@ -78,11 +80,24 @@ public class HttpClientDownloader {
             e.printStackTrace();
             logger.warn("Download Page failed: {},{}", webPage.getPath(), e.getMessage());
             return webPage;
+        } finally {
+            try {
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return webPage;
     }
 
-
+    /**
+     * HttpClients存储了不同域名所对应的CloseableHttpClient
+     *
+     * @param configuration
+     * @return
+     */
     private CloseableHttpClient getHttpClient(HttpClientConfiguration configuration) {
         String host = configuration.getHost();
         CloseableHttpClient client = httpClients.get(host);
@@ -93,36 +108,52 @@ public class HttpClientDownloader {
         return client;
     }
 
+    /**
+     * 具体处理响应
+     *
+     * @param response
+     * @param task
+     * @return
+     */
     private WebPage handleResponse(CloseableHttpResponse response, Task task) {
         HttpEntity entity = response.getEntity();
+        Header[] headers = response.getAllHeaders();
         WebPage webPage = new WebPage();
         try {
-            if (entity.getContentType().getValue().contains(HttpConstant.ContentType.TEXT_HTML)) {
+            String contentType = HttpUtils.getContentType(headers);
+            if (contentType.contains("text")) {
                 String rawText = EntityUtils.toString(entity);
                 webPage.setBinary(false);
                 webPage.setRawText(rawText);
                 webPage.setTitle(HttpUtils.getTitle(rawText));
                 webPage.setContent(HttpUtils.getContent(rawText));
-                webPage.setContentType(HttpUtils.getContentType(entity.getContentType().getValue()));
                 webPage.setCharSet(HttpUtils.getCharset(rawText));
             } else {
                 webPage.setBinary(true);
-                webPage.setContentType(HttpConstant.ContentType.MULTIPART);
+                webPage.setTitle(HttpUtils.getTitle(task));
                 webPage.setBytes(IOUtils.toByteArray(entity.getContent()));
             }
-            webPage.setContentLength(entity.getContentLength());
             webPage.setSite(task.getHost());
             webPage.setPath(task.getUrl());
+            webPage.setContentType(contentType);
+            webPage.setContentLength(entity.getContentLength());
             webPage.setStatus(response.getStatusLine().getStatusCode());
-            webPage.setHeaders(HttpUtils.convertHeaders(response.getAllHeaders()));
+            webPage.setHeaders(HttpUtils.convertHeaders(headers));
             webPage.setTime(LocalDateTime.now());
             webPage.setDownloadSuccess(true);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("Exception occurred while download page : {} , [{}]",
+                    task.getUrl(), e.getMessage());
+            return WebPage.fail();
+        } finally {
+            try {
+                EntityUtils.consume(entity);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return webPage;
     }
-
 
 
 }

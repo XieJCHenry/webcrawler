@@ -1,5 +1,9 @@
 package org.jccode.webcrawler.utils;
 
+import org.jccode.webcrawler.downloader.HttpClientDownloader;
+import org.jccode.webcrawler.model.HttpClientConfiguration;
+import org.jccode.webcrawler.model.Task;
+import org.jccode.webcrawler.model.WebPage;
 import org.jccode.webcrawler.util.HttpUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -8,6 +12,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TestHttpUtils
@@ -26,6 +32,23 @@ public class TestHttpUtils {
 //        System.out.println(document.head());
         System.out.println(document.body().outerHtml());
 
+    }
+
+    @Test
+    public void testMP3FileHeaders() {
+        String[] paths = new String[]{
+                "http://music.163.com/song/media/outer/url?id=1352968920.mp3",
+                "http://music.163.com/song/media/outer/url?id=1352968928.mp3",
+                "http://music.163.com/song/media/outer/url?id=28391671.mp3"};
+        Task task = new Task(paths[0]);
+        HttpClientConfiguration configuration = HttpClientConfiguration.custom()
+                .setHost(task.getHost());
+        HttpClientDownloader downloader = new HttpClientDownloader().setProxy(null);
+        WebPage page = downloader.download(task, configuration);
+        Map<String, String> headers = page.getHeaders();
+        headers.entrySet().forEach(entry -> {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        });
     }
 
 }

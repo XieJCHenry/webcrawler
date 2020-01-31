@@ -1,8 +1,6 @@
 package org.jccode.webcrawler.parser;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jccode.webcrawler.model.ResultItem;
-import org.jccode.webcrawler.model.WebPage;
 
 import java.util.ArrayList;
 import java.util.List;

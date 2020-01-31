@@ -3,6 +3,7 @@ package org.jccode.webcrawler.persistence;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.jccode.webcrawler.conts.HttpConstant;
 import org.slf4j.Logger;
 import org.jccode.webcrawler.model.WebPage;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,6 @@ public class FilePersistence {
     private static String DEFAULT_SUFFIX = ".dat";
 
     private static String DEFAULT_FOLDER = "output";
-
-//    private static String DEFAULT_NAME = UUID.randomUUID().toString();
 
     private static final String DEFAULT_PATH = System.getProperty("user.dir");
 
@@ -66,18 +65,20 @@ public class FilePersistence {
 
 
     /**
-     * TODO 1、获取完整的文件信息：包括文件名，后缀名，存放路径
-     * 区分二进制数据和文本文件的下载方式：
-     * 二进制数据：从url路径获得文件名和后缀名
-     * 文本文件：根据title或者url路径获得文件名和后缀名
+     * 分三种情况处理：文本文件，二进制数据流，未能探明类型的文件
      *
      * @param webPage
      */
     public void process(WebPage webPage) {
-        if (webPage.isBinary()) {
-            storageBinaryData(webPage);
+        if (webPage.getContentType().equals(HttpConstant.ContentType.UNKNOWN)) {
+            storageBinaryData(webPage, generateFilePath(path, UUID.randomUUID().toString(), DEFAULT_SUFFIX));
+        } else if (webPage.isBinary()) {
+            if (this.name == null) {
+                this.name = UUID.randomUUID().toString();
+            }
+            storageBinaryData(webPage, generateFilePath(path, name, extractSuffix(webPage)));
         } else {
-            storageTextFile(webPage);
+            storageTextFile(webPage, generateFilePath(path, webPage.getTitle(), extractSuffix(webPage)));
         }
     }
 
@@ -86,14 +87,12 @@ public class FilePersistence {
      *
      * @param webPage
      */
-    private void storageTextFile(WebPage webPage) {
-        String storagePath = generateFilePath(path, webPage.getTitle(),
-                extractSuffix(webPage));
-        File file = new File(storagePath);
+    private void storageTextFile(WebPage webPage, String storagePath) {
         String charSet = webPage.getCharSet() != null ? webPage.getCharSet() :
                 LOCAL_ENCODING;
         try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(file), charSet))) {
+                new OutputStreamWriter(new FileOutputStream(new File(storagePath)),
+                        charSet))) {
             writer.write(webPage.getRawText());
             writer.flush();
             logger.info("Storage Text File success: {}", storagePath);
@@ -105,20 +104,15 @@ public class FilePersistence {
 
     /**
      * 存储二进制文件
-     *
+     * <p>
      * 二进制文件的文件名由用户指定，用户需要根据抓取内容自定义文件名的抓取方式，
      * 如果没有定义文件名，将使用UUID。
      *
      * @param webPage
      */
-    private void storageBinaryData(WebPage webPage) {
-        if (this.name == null) {
-            this.name = UUID.randomUUID().toString();
-        }
-        String storagePath = generateFilePath(path, name, extractSuffix(webPage));
-        File file = new File(storagePath);
+    private void storageBinaryData(WebPage webPage, String storagePath) {
         try (BufferedOutputStream bos =
-                     new BufferedOutputStream(new FileOutputStream(file))) {
+                     new BufferedOutputStream(new FileOutputStream(new File(storagePath)))) {
             bos.write(webPage.getBytes());
             bos.flush();
             logger.info("Storage Binary File success: {}", storagePath);
@@ -131,6 +125,14 @@ public class FilePersistence {
         }
     }
 
+    /**
+     * 从URL路径或者Content-Type提取后缀名
+     *
+     * 如果都无法提取，则默认为“.dat”
+     *
+     * @param webPage
+     * @return
+     */
     private String extractSuffix(WebPage webPage) {
         if (this.suffix != null) {
             return this.suffix;

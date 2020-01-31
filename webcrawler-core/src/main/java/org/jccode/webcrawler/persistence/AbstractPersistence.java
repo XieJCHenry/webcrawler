@@ -2,9 +2,6 @@ package org.jccode.webcrawler.persistence;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jccode.webcrawler.model.ResultItem;
-
-import java.util.List;
 
 /**
  * AbstractPersistence
@@ -24,10 +21,6 @@ public abstract class AbstractPersistence implements Persistence {
      *
      * @param resultItem
      */
-    @Override
-    public void process(List<ResultItem> resultItem) {
-
-    }
 
 //    protected abstract void process(ResultItem resultItem);
 }

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jccode.webcrawler.model.Task;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +25,7 @@ public class UrlUtils {
         for (String url : urls) {
             taskList.add(new Task(url));
         }
-        return taskList;
+        return Collections.unmodifiableList(taskList);
     }
 
     /**
@@ -41,8 +42,8 @@ public class UrlUtils {
             char[] values = url.toCharArray();
             for (end = start + 3; end < values.length && values[end] != '/'; end++) ;
             return url.substring(0, end);
-        }else{
-            return url.substring(0,url.indexOf("/"));
+        } else {
+            return url.substring(0, url.indexOf("/"));
         }
     }
 
