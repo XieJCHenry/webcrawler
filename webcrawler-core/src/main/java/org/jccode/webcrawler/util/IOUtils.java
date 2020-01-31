@@ -30,10 +30,12 @@ public class IOUtils {
         byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         long count = 0;
         int i;
-        if ((i = input.read(buffer)) != -1) {
+        while ((i = input.read(buffer)) != -1) {
             out.write(buffer, 0, i);
             count += i;
         }
         return count;
     }
+
+
 }

@@ -59,6 +59,13 @@ public class HttpUtils {
         return headersMap;
     }
 
+    public static String getContentType(String contentType) {
+        int i;
+        return ((i = contentType.indexOf(";")) != -1) ?
+                contentType.substring(0, i) :
+                contentType;
+    }
+
     public static String getCharset(String html) {
         return Jsoup.parse(html).charset().name();
     }
@@ -67,7 +74,7 @@ public class HttpUtils {
         return Jsoup.parse(html).title();
     }
 
-    public static String getContent(String html){
+    public static String getContent(String html) {
         return Jsoup.parse(html).body().outerHtml();
     }
 

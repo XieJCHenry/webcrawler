@@ -14,12 +14,12 @@ import org.jccode.webcrawler.persistence.Persistence;
  **/
 public class Spider {
 
-    private HttpClientDownloader downloader;
+//    private HttpClientDownloader downloader;
     private Persistence persistence;
     private Parser pageParser;
 
     public Spider() {
-        downloader = new HttpClientDownloader();
+//        downloader = new HttpClientDownloader();
     }
 
     public static Spider custom() {

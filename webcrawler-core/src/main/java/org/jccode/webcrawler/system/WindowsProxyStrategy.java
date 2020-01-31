@@ -44,7 +44,7 @@ public class WindowsProxyStrategy extends AbstractSystemProxyStrategy {
 
     private ProxyModel getSystemProxy() {
         try {
-            String localEncoding = System.getProperty("file.charset");
+            String localEncoding = System.getProperty("file.encoding");
             Process process = Runtime.getRuntime().exec(WINDOWS_REG_QUERY_COMMAND);
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), localEncoding));

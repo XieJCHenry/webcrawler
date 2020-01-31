@@ -2,12 +2,13 @@ package org.jccode.webcrawler.persistence;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.log4j.Logger;
-import org.jccode.webcrawler.model.ResultItem;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.jccode.webcrawler.model.WebPage;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.UUID;
 
 /**
  * FilePersistence
@@ -18,24 +19,30 @@ import java.util.List;
  * @Version 1.0
  **/
 @Getter
-@Setter
-public class FilePersistence extends AbstractPersistence {
+public class FilePersistence {
 
-    private final Logger log = Logger.getLogger(FilePersistence.class);
+    private final Logger logger = LoggerFactory.getLogger(FilePersistence.class);
 
     private static String DEFAULT_SUFFIX = ".dat";
 
     private static String DEFAULT_FOLDER = "output";
 
+//    private static String DEFAULT_NAME = UUID.randomUUID().toString();
+
     private static final String DEFAULT_PATH = System.getProperty("user.dir");
 
-    private static final String LOCAL_ENCODING = System.getProperty("file.charset");
+    private static final String LOCAL_ENCODING = System.getProperty("file.encoding");
 
     private static final String LOCAL_SEPARATOR = System.getProperty("file.separator");
 
+    @Setter
     private String path;
 
+    @Setter
     private String suffix;
+
+    @Setter
+    private String name;
 
 
     public FilePersistence() {
@@ -48,47 +55,101 @@ public class FilePersistence extends AbstractPersistence {
     }
 
     public FilePersistence(String path, String suffix) {
+        this(path, null, suffix);
+    }
+
+    public FilePersistence(String path, String name, String suffix) {
         this.path = path;
-        this.suffix = suffix == null ? DEFAULT_SUFFIX : suffix;
+        this.name = name;
+        this.suffix = suffix;
     }
 
 
-    @Override
-    public void process(List<ResultItem> resultItems) {
-        for (ResultItem item : resultItems) {
-            process(item);
+    /**
+     * TODO 1、获取完整的文件信息：包括文件名，后缀名，存放路径
+     * 区分二进制数据和文本文件的下载方式：
+     * 二进制数据：从url路径获得文件名和后缀名
+     * 文本文件：根据title或者url路径获得文件名和后缀名
+     *
+     * @param webPage
+     */
+    public void process(WebPage webPage) {
+        if (webPage.isBinary()) {
+            storageBinaryData(webPage);
+        } else {
+            storageTextFile(webPage);
         }
     }
 
-    //    @Override
-    protected void process(ResultItem resultItem) {
-        if (resultItem == null) {
-            throw new NullPointerException("ResultItem isn't initialized");
-        }
-        // 默认路径为当前工程的路径
-//        if (Strings.isNullOrEmpty(path)) {
-//            throw new PersistencePathUnValidException();
-//        }
-        String storagePath = generateFilePath(path, resultItem.getItemName(), suffix);
-        File target = new File(storagePath);
-
-        try {
-            if (!target.exists() || target.isDirectory() || target.mkdirs()) {
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(new FileOutputStream(target),
-                                LOCAL_ENCODING));
-                writer.write(resultItem.getContext());
-                resultItem.setPersistenceTime(LocalDateTime.now());
-                resultItem.setConserved(true);
-                log.info("Success to storage content : " + resultItem.getItemName() +
-                        "[" + resultItem.getPersistenceTime() + "]");
-            } else {
-                resultItem.setConserved(false);
-                log.warn("Failed to storage content : " + resultItem.getItemName());
-            }
+    /**
+     * 存储文本文件
+     *
+     * @param webPage
+     */
+    private void storageTextFile(WebPage webPage) {
+        String storagePath = generateFilePath(path, webPage.getTitle(),
+                extractSuffix(webPage));
+        File file = new File(storagePath);
+        String charSet = webPage.getCharSet() != null ? webPage.getCharSet() :
+                LOCAL_ENCODING;
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(file), charSet))) {
+            writer.write(webPage.getRawText());
+            writer.flush();
+            logger.info("Storage Text File success: {}", storagePath);
         } catch (IOException e) {
-            log.error("Exception occur during storage content : {}", e);
+            logger.error("Exception occurred while storage file : {}", storagePath, e);
+//            e.printStackTrace();
         }
+    }
+
+    /**
+     * 存储二进制文件
+     *
+     * 二进制文件的文件名由用户指定，用户需要根据抓取内容自定义文件名的抓取方式，
+     * 如果没有定义文件名，将使用UUID。
+     *
+     * @param webPage
+     */
+    private void storageBinaryData(WebPage webPage) {
+        if (this.name == null) {
+            this.name = UUID.randomUUID().toString();
+        }
+        String storagePath = generateFilePath(path, name, extractSuffix(webPage));
+        File file = new File(storagePath);
+        try (BufferedOutputStream bos =
+                     new BufferedOutputStream(new FileOutputStream(file))) {
+            bos.write(webPage.getBytes());
+            bos.flush();
+            logger.info("Storage Binary File success: {}", storagePath);
+        } catch (FileNotFoundException e) {
+            logger.error("Storage Path not exists: {}", storagePath);
+            e.printStackTrace();
+        } catch (IOException e) {
+            logger.error("Exception occurred while storage file : {}", storagePath, e);
+//            e.printStackTrace();
+        }
+    }
+
+    private String extractSuffix(WebPage webPage) {
+        if (this.suffix != null) {
+            return this.suffix;
+        }
+        String suffix = DEFAULT_SUFFIX;
+        if (!webPage.isBinary()) {
+            String var1 = webPage.getContentType();
+            if (StringUtils.isNotBlank(var1) && var1.contains("/")) {
+                suffix = var1.split("/")[1];
+            }
+        } else {
+            String var1 = webPage.getPath();
+            int i = var1.lastIndexOf(".");
+            if (i != -1) {
+                suffix = var1.substring(i);
+            }
+        }
+        this.suffix = suffix;
+        return suffix;
     }
 
     private String generateFilePath(String path, String fileName, String suffix) {

@@ -7,8 +7,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jccode.webcrawler.downloader.HttpClientDownloader;
 import org.jccode.webcrawler.downloader.MultiTasksHttpDownloader;
+import org.jccode.webcrawler.model.HttpClientConfiguration;
 import org.jccode.webcrawler.model.Task;
 import org.jccode.webcrawler.model.WebPage;
+import org.jccode.webcrawler.persistence.FilePersistence;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -52,21 +54,31 @@ public class TestDownloader {
     }
 
     @Test
-    public void testHttpClientDownloader() {
-        Task[] tasks = new Task[]{
-                new Task("https://www.google.com/", true),
-                new Task("https://www.github.com/", true),
-                new Task("https://www.baidu.com"),
-                new Task("https://cn.bing.com")
-        };
-        HttpClientDownloader downloader = new HttpClientDownloader();
-        List<WebPage> pages = downloader.download(tasks);
-        pages.forEach(page -> {
-            System.out.println("***************************************");
-            System.out.println(page.getSite() + page.getPath());
-            System.out.println(page.getContent().length());
-        });
-        downloader.close();
+    public void testDownloadHTML() {
+        Task task = new Task("https://cn.bing.com");
+        task = new Task("https://www.google.com");
+        HttpClientConfiguration configuration = HttpClientConfiguration.custom()
+                .setHost(task.getHost());
+        HttpClientDownloader downloader = new HttpClientDownloader().setProxy(null);
+        WebPage page = downloader.download(task, configuration);
+//        String path = "";
+
+        System.out.println(page);
+//        downloader.close();
+    }
+
+    @Test
+    public void testDownloadMP3() {
+        String[] paths = new String[]{
+                "http://music.163.com/song/media/outer/url?id=1352968920.mp3",
+                "http://music.163.com/song/media/outer/url?id=1352968928.mp3"};
+        Task task = new Task(paths[0]);
+        HttpClientConfiguration configuration = HttpClientConfiguration.custom()
+                .setHost(task.getHost());
+        HttpClientDownloader downloader = new HttpClientDownloader().setProxy(null);
+        WebPage page = downloader.download(task, configuration);
+        FilePersistence filePersistence = new FilePersistence("D:\\test", "mp3");
+        filePersistence.process(page);
     }
 
     @Test
@@ -74,12 +86,11 @@ public class TestDownloader {
         Task[] tasks = new Task[]{
                 new Task("https://www.baidu.com")
         };
-        CloseableHttpClient client= HttpClientBuilder.create().build();
+        CloseableHttpClient client = HttpClientBuilder.create().build();
         CloseableHttpResponse response = client.execute(new HttpGet(tasks[0].getUrl()));
         System.out.println(response.getEntity().getContentType());
-        System.out.println(response.getEntity().getContentEncoding());  // TODO 这里会取得null
+        System.out.println(response.getEntity().getContentEncoding());
         response.close();
         client.close();
-
     }
 }

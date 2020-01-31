@@ -18,25 +18,25 @@ import java.util.List;
  **/
 public class TestParser {
 
-    @Test
-    public void testRegex() {
-        Task[] tasks = new Task[]{
-//                new Task("https://www.google.com/", true),
-//                new Task("https://www.github.com/", true),
-//                new Task("https://www.baidu.com"),
-//                new Task("https://cn.bing.com"),
-                new Task("https://www.bilibili.com/")
-        };
-        HttpClientDownloader downloader = new HttpClientDownloader();
-        List<WebPage> pages = downloader.download(tasks);
-        pages.forEach(page -> {
-            System.out.println("***************************************");
-            System.out.println(page.getSite() + page.getPath());
-//            List<String> list = page.regex(RegexPattern.URL.getPattern()).all();
-//            for (String s : list) {
-//                System.out.println("url = " + s);
-//            }
-        });
-        downloader.close();
-    }
+//    @Test
+//    public void testRegex() {
+//        Task[] tasks = new Task[]{
+////                new Task("https://www.google.com/", true),
+////                new Task("https://www.github.com/", true),
+////                new Task("https://www.baidu.com"),
+////                new Task("https://cn.bing.com"),
+//                new Task("https://www.bilibili.com/")
+//        };
+//        HttpClientDownloader downloader = new HttpClientDownloader();
+//        List<WebPage> pages = downloader.download(tasks);
+//        pages.forEach(page -> {
+//            System.out.println("***************************************");
+//            System.out.println(page.getSite() + page.getPath());
+////            List<String> list = page.regex(RegexPattern.URL.getPattern()).all();
+////            for (String s : list) {
+////                System.out.println("url = " + s);
+////            }
+//        });
+//        downloader.close();
+//    }
 }

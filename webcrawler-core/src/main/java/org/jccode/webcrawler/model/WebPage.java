@@ -12,13 +12,13 @@ import java.util.Map;
 /**
  * WebPage
  *
- * @Description TODO
+ * @Description 存储下载的网页，如果是text，则包含html；如果是二进制数据，则包含二进制字节
  * @Author jc-henry
  * @Date 2020/1/27 9:28
  * @Version 1.0
  **/
 @Data
-@ToString
+@ToString(exclude = {"bytes","content","rawText"})
 @EqualsAndHashCode
 public class WebPage {
 
@@ -27,6 +27,7 @@ public class WebPage {
     private String site;
     private String path = "";
     private int status;
+    private long contentLength;
     private String title;
     private String content;
     private String rawText;
