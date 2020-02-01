@@ -1,7 +1,6 @@
 package org.jccode.webcrawler.spider;
 
 import org.jccode.webcrawler.downloader.HttpClientDownloader;
-import org.jccode.webcrawler.parser.Parser;
 import org.jccode.webcrawler.persistence.Persistence;
 
 /**
@@ -16,7 +15,6 @@ public class Spider {
 
 //    private HttpClientDownloader downloader;
     private Persistence persistence;
-    private Parser pageParser;
 
     public Spider() {
 //        downloader = new HttpClientDownloader();
