@@ -1,14 +1,11 @@
 package org.jccode.webcrawler.extractor;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import org.jccode.webcrawler.exception.NoPatternsException;
 import org.jccode.webcrawler.exception.RegexExtractorException;
+import org.jccode.webcrawler.util.RegexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.OperationNotSupportedException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -21,7 +18,7 @@ import java.util.regex.Pattern;
  * <p>
  * 第一期：只使用jdk类库提供简单的正则功能，后期再引入其他类库，方便用户的正则表达式生成
  *
- * @Description TODO
+ * @Description TODO 寻找其他正则类库
  * @Author jc-henry
  * @Date 2020/2/1 14:56
  * @Version 1.0
@@ -33,6 +30,9 @@ public class RegexExtractor implements Extractor {
     private static final String PATTERN_LABEL = "RegexPattern-";
 
     private AtomicInteger patternNum = new AtomicInteger(0);
+    /**
+     * key:该pattern解析得到的结果名，用于持久化时填入map
+     */
     private final Map<String, Pattern> regexPatterns = new LinkedHashMap<>();
     /**
      * 如果用户只输入一条pattern，将保存在此对象中
@@ -88,9 +88,14 @@ public class RegexExtractor implements Extractor {
         return this;
     }
 
+    /*======================= Only One Pattern ===========================*/
     @Override
     public String extract(String html) {
-        return extractResult(html);
+        return extract(html, 0);
+    }
+
+    public String extract(String html, int group) {
+        return extractResult(html, group);
     }
 
     @Override
@@ -98,16 +103,24 @@ public class RegexExtractor implements Extractor {
         return extractResults(html);
     }
 
+
+
+    /*======================= Multi Patterns ===========================*/
     /**
      * 输入多个regex，返回每个regex对应的解析结果
      *
      * @param html
      * @return
      */
+    @Override
     public Set<List<String>> extractSet(String html) {
+        return extractSet(html, 0);
+    }
+
+    public Set<List<String>> extractSet(String html, int group) {
         Set<List<String>> resultSet = new LinkedHashSet<>();
         for (Map.Entry<String, Pattern> entry : regexPatterns.entrySet()) {
-            resultSet.add(extractResults(html, entry.getValue()));
+            resultSet.add(extractResults(html, entry.getValue(), group));
         }
         return resultSet; // unmodifiedSet 无法执行.clear()方法，因此不使用。下同。
     }
@@ -118,32 +131,31 @@ public class RegexExtractor implements Extractor {
      * @param html
      * @return
      */
+    @Override
     public Map<String, List<String>> extractMap(String html) {
+        return extractMap(html, 0);
+    }
+
+    public Map<String, List<String>> extractMap(String html, int group) {
         if (regexPatterns.size() == 0) {
             throw new RegexExtractorException(RegexExtractorException.NO_PATTERN);
         }
         Map<String, List<String>> resultMap = new LinkedHashMap<>(regexPatterns.size());
         for (Map.Entry<String, Pattern> entry : regexPatterns.entrySet()) {
-            List<String> resList = extractResults(html, entry.getValue());
+            List<String> resList = extractResults(html, entry.getValue(), group);
             resultMap.put(entry.getKey(), resList);
         }
         return resultMap;
     }
 
-    private String extractResult(String html) {
+    /*======================= Helpers ===========================*/
+
+    private String extractResult(String html, int group) {
         if (cachePattern == null || patternNum.get() > 1) {
             throw new RegexExtractorException(RegexExtractorException.ONLY_ONE_PATTERN);
         } else {
-            return extractResult(html, cachePattern);
-        }
-    }
-
-    private String extractResult(String html, Pattern pattern) {
-        Matcher matcher = pattern.matcher(html);
-        if (matcher.find()) {
-            return matcher.group();
-        } else {
-            return "";
+            Matcher matcher = cachePattern.matcher(html);
+            return matcher.find() ? matcher.group(group) : "";
         }
     }
 
@@ -151,21 +163,20 @@ public class RegexExtractor implements Extractor {
         if (cachePattern == null || patternNum.get() > 1) {
             throw new RegexExtractorException(RegexExtractorException.ONLY_ONE_PATTERN);
         } else {
-            return extractResults(html, cachePattern);
+            return extractResults(html, cachePattern, 0);
         }
     }
 
-    private List<String> extractResults(String html, Pattern pattern) {
-        List<String> res = new ArrayList<>();
-        Matcher matcher = pattern.matcher(html);
-        boolean found = matcher.find();
-        if (!found) {
+    private List<String> extractResults(String html, Pattern pattern, int group) {
+        int count;
+        if ((count = RegexUtils.count(pattern, html)) == 0) {
             return Collections.emptyList();
+        } else {
+            List<String> res = new ArrayList<>(count);
+            for (Matcher matcher1 = pattern.matcher(html); matcher1.find(); ) {
+                res.add(matcher1.group(group));
+            }
+            return res;
         }
-        while (found) {
-            res.add(matcher.group());
-            found = matcher.find();
-        }
-        return res;
     }
 }

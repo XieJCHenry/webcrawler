@@ -82,26 +82,4 @@ public class Task implements Serializable {
         this.charset = charset;
     }
 
-//    private HttpUriRequest convertToRequest(String requestMethod) {
-//        switch (requestMethod.toUpperCase()) {
-//            case "GET":
-//                return RequestBuilder.get(url).build();
-//            case "POST":
-//                return RequestBuilder.post(url).build();
-//            case "PUT":
-//                return RequestBuilder.put(url).build();
-//            case "DELETE":
-//                return RequestBuilder.delete(url).build();
-//            case "PATCH":
-//                return RequestBuilder.patch(url).build();
-//            case "TRACE":
-//                return RequestBuilder.trace(url).build();
-//            case "HEAD":
-//                return RequestBuilder.head(url).build();
-//            default:
-//                return RequestBuilder.get(url).build();
-//        }
-//    }
-
-
 }

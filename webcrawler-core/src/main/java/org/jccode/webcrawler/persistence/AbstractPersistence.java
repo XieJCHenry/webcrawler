@@ -2,6 +2,10 @@ package org.jccode.webcrawler.persistence;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.jccode.webcrawler.model.ResultItem;
+import org.jccode.webcrawler.model.WebPage;
+
+import java.util.List;
 
 /**
  * AbstractPersistence
@@ -16,11 +20,11 @@ import lombok.Setter;
 public abstract class AbstractPersistence implements Persistence {
 
 
-    /**
-     * It is no need for subClasses to override this method.
-     *
-     * @param resultItem
-     */
-
-//    protected abstract void process(ResultItem resultItem);
+    public void process(List<ResultItem> resultItems) {
+        if (null != resultItems && !resultItems.isEmpty()) {
+            for (ResultItem item : resultItems) {
+                process(item);
+            }
+        }
+    }
 }

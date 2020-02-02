@@ -42,6 +42,7 @@ import java.util.concurrent.*;
  * @Date 2019/12/6 16:25
  * @Version 1.0
  **/
+@Deprecated
 public class InternalHttpClientDownloader extends AbstractHttpClientDownloader {
 
     private String threadName;

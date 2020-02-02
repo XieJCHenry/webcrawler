@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * AutoExtractor
- *
+ * ContentExtractor
+ * <p>
  * 自动抽取页面正文，代码来源；https://code.google.com/archive/p/cx-extractor/
  *
  * @Description TODO
@@ -14,35 +14,42 @@ import java.util.List;
  * @Date 2020/2/1 20:00
  * @Version 1.0
  **/
-public class AutoExtractor implements Extractor {
+public class ContentExtractor extends SinglePatternExtractor {
 
-    private static List<String> lines;
-    private final static int blocksWidth;
-    private static int threshold;
-    //    private static String html;
-    private static boolean flag;
-    private static int start;
-    private static int end;
-    private static StringBuilder text;
-    private static List<Integer> indexDistribution;
+    private final static int blocksWidth = 3;
+    private static int threshold = 86;
+    private List<String> lines;
+    private List<Integer> indexDistribution;
+    private boolean flag;
+    private int start;
+    private int end;
+    private StringBuilder text;
 
-    static {
+    public ContentExtractor() {
+        this.text = new StringBuilder();
+        this.start = -1;
+        this.end = -1;
+        flag = false;
         lines = new ArrayList<>();
         indexDistribution = new ArrayList<>();
-        text = new StringBuilder();
-        blocksWidth = 3;
-        flag = false;
-        threshold = 86;
     }
 
+    /**
+     * 返回抽取到的页面正文
+     *
+     * @param html
+     * @return
+     */
     @Override
     public String extract(String html) {
         // pre process
         html = html.replaceAll("(?is)<!DOCTYPE.*?>", "");
-        html = html.replaceAll("(?is)<!--.*?-->", "");                // remove html comment
+        html = html.replaceAll("(?is)<!--.*?-->", "");                // remove html
+        // comment
         html = html.replaceAll("(?is)<script.*?>.*?</script>", ""); // remove javascript
         html = html.replaceAll("(?is)<style.*?>.*?</style>", "");   // remove css
-        html = html.replaceAll("&.{2,5};|&#.{2,5};", " ");            // remove special char
+        html = html.replaceAll("&.{2,5};|&#.{2,5};", " ");            // remove special
+        // char
         html = html.replaceAll("(?is)<.*?>", "");
 
         lines = Arrays.asList(html.split("\n"));
@@ -57,8 +64,8 @@ public class AutoExtractor implements Extractor {
             indexDistribution.add(wordsNum);
         }
 
-        start = -1;
-        end = -1;
+//        start = -1;
+//        end = -1;
         boolean boolstart = false, boolend = false;
         text.setLength(0);
 
@@ -87,7 +94,6 @@ public class AutoExtractor implements Extractor {
                     tmp.append(lines.get(ii)).append("\n");
                 }
                 String str = tmp.toString();
-                //System.out.println(str);
                 if (str.contains("Copyright")) continue;
                 text.append(str);
                 boolstart = boolend = false;
@@ -99,6 +105,7 @@ public class AutoExtractor implements Extractor {
 
     @Override
     public List<String> extractList(String html) {
-        return null;
+        throw new UnsupportedOperationException("ContentExtractor only extract page " +
+                "content.");
     }
 }

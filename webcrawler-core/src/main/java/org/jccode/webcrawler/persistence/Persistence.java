@@ -1,5 +1,8 @@
 package org.jccode.webcrawler.persistence;
 
+
+import org.jccode.webcrawler.model.ResultItem;
+
 /**
  * Persistence
  *
@@ -10,10 +13,12 @@ package org.jccode.webcrawler.persistence;
  **/
 public interface Persistence {
 
+
     /**
-     * 持久化接口
      *
-     * @param resultItems
+     * @param resultItem
      */
-//    void process(List<ResultItem> resultItems);
+    void process(ResultItem resultItem);
+
+
 }

@@ -11,7 +11,7 @@ package org.jccode.webcrawler.conts;
 public enum RegexPattern {
 
 
-    URL("<a href=\"(.+?)\""),
+    URL("(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]"),
     IMG_URL("<img src=\"(.+?)\""),
     TEXT("<p>(.+?)</p>");
 
@@ -21,7 +21,7 @@ public enum RegexPattern {
         this.pattern = pattern;
     }
 
-    public String getPattern() {
+    public String pattern() {
         return pattern;
     }
 }

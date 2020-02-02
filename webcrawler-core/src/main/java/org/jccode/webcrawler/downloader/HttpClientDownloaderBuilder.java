@@ -70,6 +70,7 @@ public class HttpClientDownloaderBuilder {
         return this;
     }
 
+    @Deprecated
     public InternalHttpClientDownloader build() {
         return new InternalHttpClientDownloader(defaultClient());
     }

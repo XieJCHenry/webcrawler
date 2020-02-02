@@ -1,6 +1,8 @@
 package org.jccode.webcrawler.extractor;
 
-import com.google.common.collect.LinkedHashMultiset;
+import org.jccode.webcrawler.conts.RegexPattern;
+import org.jccode.webcrawler.util.CollectionUtils;
+import org.jccode.webcrawler.util.RegexUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -17,56 +19,54 @@ import java.util.stream.Collectors;
  * @Date 2020/2/1 20:19
  * @Version 1.0
  **/
-public class LinksExtractor implements Extractor {
+public class LinksExtractor extends SinglePatternExtractor {
 
-    public static final String URL_PATTERN = "(https?|ftp|file)" +
-            "://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]";
-    public static final Pattern urlPattern = Pattern.compile(URL_PATTERN);
+    public static final String PATTERN_STRING = RegexPattern.URL.pattern();
+    public static final Pattern URL_PATTERN = Pattern.compile(PATTERN_STRING);
+
+    private LinksExtractor() {
+    }
+
+    public static LinksExtractor create() {
+        return new LinksExtractor();
+    }
+
+    public List<String> all(String html) {
+        return extractList(html);
+    }
 
     @Override
     public String extract(String html) {
-        throw new UnsupportedOperationException("LinksExtractor can only extract all " +
+        throw new UnsupportedOperationException("LinksExtractor only extract all " +
                 "urls from a web page");
     }
 
     @Override
     public List<String> extractList(String html) {
-        Matcher matcher = urlPattern.matcher(html);
-        boolean found = matcher.find();
-        int count = 0;
-        while (found) {
-            count++;
-            found = matcher.find();
+        int count = RegexUtils.count(URL_PATTERN, html);
+        if (count == 0) {
+            return Collections.emptyList();
+        } else {
+            List<String> resList = new ArrayList<>(count);
+            for (Matcher matcher = URL_PATTERN.matcher(html); matcher.find(); ) {
+                resList.add(matcher.group());
+            }
+            return resList;
         }
-        List<String> resList = new ArrayList<>(count);
-        matcher.reset();
-        found = matcher.find();
-        while (found) {
-            resList.add(matcher.group());
-            found = matcher.find();
-        }
-        return Collections.unmodifiableList(resList);
     }
 
     public List<String> extractNoDuplicateList(String html) {
-        Matcher matcher = urlPattern.matcher(html);
-        boolean found = matcher.find();
-        int count = 0;
-        while (found) {
-            count++;
-            found = matcher.find();
+        int count = RegexUtils.count(URL_PATTERN, html);
+        if (count == 0) {
+            return Collections.emptyList();
+        } else {
+            List<String> resList = new ArrayList<>(count);
+            for (Matcher matcher = URL_PATTERN.matcher(html); matcher.find(); ) {
+                resList.add(matcher.group());
+            }
+            CollectionUtils.removeDuplicate(resList);
+            return resList;
         }
-        matcher.reset();
-        Set<String> helperSet = new LinkedHashSet<>(count);
-        List<String> resList = new ArrayList<>(count);
-        found = matcher.find();
-        while (found) {
-            helperSet.add(matcher.group());
-            found = matcher.find();
-        }
-        resList.addAll(helperSet);
-        helperSet.clear();
-        return Collections.unmodifiableList(resList);
     }
 
     /**
@@ -76,7 +76,7 @@ public class LinksExtractor implements Extractor {
      * @return
      */
     private List<String> removeDuplicate(String html) {
-        Matcher matcher = urlPattern.matcher(html);
+        Matcher matcher = URL_PATTERN.matcher(html);
         boolean found = matcher.find();
         int count = 0;
         while (found) {

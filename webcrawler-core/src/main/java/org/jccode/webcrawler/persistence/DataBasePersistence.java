@@ -1,5 +1,10 @@
 package org.jccode.webcrawler.persistence;
 
+import org.jccode.webcrawler.model.ResultItem;
+import org.jccode.webcrawler.model.WebPage;
+
+import java.util.List;
+
 /**
  * DataBasePersistence
  * <p>
@@ -11,8 +16,6 @@ package org.jccode.webcrawler.persistence;
  * @Version 1.0
  **/
 public class DataBasePersistence extends AbstractPersistence implements Runnable {
-
-    private static final String LOCAL_ENCODING = System.getProperty("file.charset");
 
     private final String URL;
     private final String DRIVER;
@@ -28,12 +31,14 @@ public class DataBasePersistence extends AbstractPersistence implements Runnable
         this.PASSWORD = password;
     }
 
-
     @Override
     public void run() {
 
     }
 
 
+    @Override
+    public void process(ResultItem resultItem) {
 
+    }
 }

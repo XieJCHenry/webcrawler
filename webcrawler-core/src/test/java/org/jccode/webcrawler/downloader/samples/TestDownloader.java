@@ -8,6 +8,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.jccode.webcrawler.downloader.HttpClientDownloader;
 import org.jccode.webcrawler.downloader.MultiTasksHttpDownloader;
 import org.jccode.webcrawler.model.HttpClientConfiguration;
+import org.jccode.webcrawler.model.ResultItem;
 import org.jccode.webcrawler.model.Task;
 import org.jccode.webcrawler.model.WebPage;
 import org.jccode.webcrawler.persistence.FilePersistence;
@@ -81,7 +82,7 @@ public class TestDownloader {
         WebPage page = downloader.download(task, configuration);
         System.out.println(page);
         FilePersistence filePersistence = new FilePersistence("D:\\test", "不要说话", "mp3");
-        filePersistence.process(page);
+        filePersistence.process(new ResultItem(page));
     }
 
     @Test

@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.jccode.webcrawler.conts.HttpConstant;
+import org.jccode.webcrawler.conts.SystemConstants;
+import org.jccode.webcrawler.model.ResultItem;
 import org.slf4j.Logger;
 import org.jccode.webcrawler.model.WebPage;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import java.util.UUID;
 
 /**
  * FilePersistence
+ * <p>
  *
  * @Description 写入本地文件  TODO 1、是否有必要开启线程？ 2、增加写入到excel文件功能
  * @Author jc-henry
@@ -20,7 +23,7 @@ import java.util.UUID;
  * @Version 1.0
  **/
 @Getter
-public class FilePersistence {
+public class FilePersistence extends AbstractPersistence  {
 
     private final Logger logger = LoggerFactory.getLogger(FilePersistence.class);
 
@@ -28,11 +31,11 @@ public class FilePersistence {
 
     private static String DEFAULT_FOLDER = "output";
 
-    private static final String DEFAULT_PATH = System.getProperty("user.dir");
+    private static final String DEFAULT_PATH = SystemConstants.DEFAULT_PATH;
 
-    private static final String LOCAL_ENCODING = System.getProperty("file.encoding");
+    private static final String LOCAL_ENCODING = SystemConstants.LOCAL_ENCODING;
 
-    private static final String LOCAL_SEPARATOR = System.getProperty("file.separator");
+    private static final String LOCAL_SEPARATOR = SystemConstants.LOCAL_SEPARATOR;
 
     @Setter
     private String path;
@@ -67,18 +70,23 @@ public class FilePersistence {
     /**
      * 分三种情况处理：文本文件，二进制数据流，未能探明类型的文件
      *
-     * @param webPage
+     * @param
      */
-    public void process(WebPage webPage) {
+//    @Override
+    public void process(ResultItem resultItem) {
+        WebPage webPage = resultItem.getWebPage();
         if (webPage.getContentType().equals(HttpConstant.ContentType.UNKNOWN)) {
-            storageBinaryData(webPage, generateFilePath(path, UUID.randomUUID().toString(), DEFAULT_SUFFIX));
+            storageBinaryData(webPage, generateFilePath(path,
+                    UUID.randomUUID().toString(), DEFAULT_SUFFIX));
         } else if (webPage.isBinary()) {
             if (this.name == null) {
                 this.name = UUID.randomUUID().toString();
             }
-            storageBinaryData(webPage, generateFilePath(path, name, extractSuffix(webPage)));
+            storageBinaryData(webPage, generateFilePath(path, name,
+                    extractSuffix(webPage)));
         } else {
-            storageTextFile(webPage, generateFilePath(path, webPage.getTitle(), extractSuffix(webPage)));
+            storageTextFile(webPage, generateFilePath(path, webPage.getTitle(),
+                    extractSuffix(webPage)));
         }
     }
 
@@ -127,7 +135,7 @@ public class FilePersistence {
 
     /**
      * 从URL路径或者Content-Type提取后缀名
-     *
+     * <p>
      * 如果都无法提取，则默认为“.dat”
      *
      * @param webPage

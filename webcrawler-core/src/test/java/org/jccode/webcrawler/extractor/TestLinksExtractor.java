@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import java.io.*;
 import java.util.List;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +28,7 @@ public class TestLinksExtractor {
         while ((line = reader.readLine()) != null) {
             sb.append(line);
         }
-        Pattern pattern = LinksExtractor.urlPattern;
+        Pattern pattern = LinksExtractor.URL_PATTERN;
         Matcher matcher = pattern.matcher(sb.toString());
         int count = 0;
         boolean found = matcher.find();

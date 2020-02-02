@@ -1,10 +1,11 @@
 package org.jccode.webcrawler;
 
+import org.jccode.webcrawler.persistence.Persistence;
+
 /**
  * @author jc-henry
  */
 public class Spider {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
+
+    private Persistence persistence;
 }
