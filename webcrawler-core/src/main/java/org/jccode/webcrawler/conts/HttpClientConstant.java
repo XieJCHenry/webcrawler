@@ -16,6 +16,5 @@ public class HttpClientConstant {
         public static final int DEFAULT_SLEEP_TIMES = 5000;
         public static final int DEFAULT_RETRY_TIMES = 3;
         public static final String DEFAULT_THREAD_NAME = "HttpClientDownloader-Thread";
-
     }
 }

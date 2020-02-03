@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.*;
+import org.jccode.webcrawler.conts.HttpClientConstant;
 import org.jccode.webcrawler.util.UrlUtils;
 
 import java.io.Serializable;
@@ -26,7 +27,6 @@ import java.util.Objects;
 @ToString
 @EqualsAndHashCode
 public class Task implements Serializable {
-
 
     private String host;
 
@@ -51,7 +51,7 @@ public class Task implements Serializable {
     /**
      * priority of a task, the bigger will be processed earlier.
      */
-    private long priority;
+    private int priority = 0;
 
     private Map<String, String> headers = new HashMap<>();
 

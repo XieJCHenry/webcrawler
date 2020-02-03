@@ -1,5 +1,7 @@
 package org.jccode.webcrawler.scheduler;
 
+import org.jccode.webcrawler.model.Task;
+
 /**
  * Url调度器，负责添加待访问的URL
  * <p>
@@ -8,4 +10,6 @@ package org.jccode.webcrawler.scheduler;
  * @author jc-henry
  */
 public interface Scheduler {
+
+    boolean add(Task task);
 }
