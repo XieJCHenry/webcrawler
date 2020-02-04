@@ -15,7 +15,7 @@ import java.util.*;
  **/
 @Data
 @ToString(exclude = {"bytes", "content", "rawText"})
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"content","rawText","bytes"})
 public class WebPage {
 
     private String site;

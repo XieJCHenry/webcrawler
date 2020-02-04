@@ -2,6 +2,8 @@ package org.jccode.webcrawler.scheduler;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import org.jccode.webcrawler.model.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.List;
@@ -20,6 +22,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * @Version 1.0
  **/
 public class PriorityScheduler extends AbstractScheduler {
+
+    private static final Logger logger = LoggerFactory.getLogger(PriorityScheduler.class);
+    private static final String schedulerName = PriorityScheduler.class.getName();
 
     private static final int INIT_CAPACITY = 8;
     // priority = 0
@@ -52,6 +57,7 @@ public class PriorityScheduler extends AbstractScheduler {
                         } else {
                             pushTask(task);
                             addCount.incrementAndGet();
+                            logger.info("{} add task = {}", schedulerName, task.getUrl());
                         }
                     }
                 }
@@ -60,6 +66,7 @@ public class PriorityScheduler extends AbstractScheduler {
             }
         }
         currentTasksCount.getAndAdd(addCount.get());
+        logger.info("{} adds {} new tasks.", schedulerName, addCount.get());
         return addCount.get();
     }
 
@@ -71,6 +78,7 @@ public class PriorityScheduler extends AbstractScheduler {
         } else {
             pushTask(task);
             currentTasksCount.incrementAndGet();
+            logger.info("{} add task = {}", schedulerName, task.getUrl());
             return true;
         }
     }
@@ -85,12 +93,30 @@ public class PriorityScheduler extends AbstractScheduler {
         }
     }
 
-    public int pushList(List<Task> taskList) {
-        return addList(taskList);
-    }
-
-    public boolean push(Task task) {
-        return add(task);
+    //    public int pushList(List<Task> taskList) {
+//        return addList(taskList);
+//    }
+//
+//    public boolean push(Task task) {
+//        return add(task);
+//    }
+    public void clear() {
+        synchronized (this) {
+            if (!noPriorityTasksQueue.isEmpty()) {
+                noPriorityTasksQueue.clear();
+            }
+            if (!plusPriorityTasksQueue.isEmpty()) {
+                plusPriorityTasksQueue.clear();
+            }
+            if (!minusPriorityTasksQueue.isEmpty()) {
+                minusPriorityTasksQueue.clear();
+            }
+            if (!visitedPool.isEmpty()) {
+                visitedPool.clear();
+            }
+            currentTasksCount.set(0);
+            visitedCount.set(0);
+        }
     }
 
     public Task poll() {

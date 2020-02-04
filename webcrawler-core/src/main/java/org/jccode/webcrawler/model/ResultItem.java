@@ -25,10 +25,17 @@ public class ResultItem {
     private boolean persistSuccess;
     private LocalDateTime processTime;
     @Getter
-    private Collection resultFields;
+    private Collection resultFields;    // TODO resultFields如何设计？
 
     public ResultItem() {
         this.webPage = WebPage.emptyPage();
+    }
+
+    public static ResultItem custom() {
+        ResultItem resultItem = new ResultItem();
+        resultItem.setProcessTime(LocalDateTime.now());
+        resultItem.setPersistSuccess(true);
+        return resultItem;
     }
 
     public ResultItem(WebPage webPage) {
@@ -36,6 +43,9 @@ public class ResultItem {
     }
 
     public ResultItem setResultFields(Collection resultFields) {
+        if (resultFields == null) {
+            this.resultFields = (Collection) Collections.EMPTY_MAP;
+        }
         this.resultFields = resultFields;
         return this;
     }

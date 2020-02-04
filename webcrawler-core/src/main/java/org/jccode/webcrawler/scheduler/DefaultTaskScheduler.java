@@ -2,6 +2,8 @@ package org.jccode.webcrawler.scheduler;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import org.jccode.webcrawler.model.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -18,9 +20,11 @@ import java.util.concurrent.locks.ReentrantLock;
  **/
 public class DefaultTaskScheduler extends AbstractScheduler {
 
+    private static final Logger logger = LoggerFactory.getLogger(DefaultTaskScheduler.class);
+    private static final String schedulerName = DefaultTaskScheduler.class.getName();
+
     private final ConcurrentLinkedQueue<Task> taskQueue = new ConcurrentLinkedQueue<>();
-    private final ConcurrentHashMultiset<Task> visitedPool =
-            ConcurrentHashMultiset.create();
+    private final ConcurrentHashMultiset<Task> visitedPool = ConcurrentHashMultiset.create();
     private ReentrantLock newTaskLock = new ReentrantLock();
     private AtomicInteger visitedCount = new AtomicInteger(0);
     private AtomicInteger currentTaskCount = new AtomicInteger(0);
@@ -38,6 +42,7 @@ public class DefaultTaskScheduler extends AbstractScheduler {
                         } else {
                             taskQueue.add(task);
                             addCount.incrementAndGet();
+                            logger.info("{} add task = {}", schedulerName, task.getUrl());
                         }
                     }
                 }
@@ -46,6 +51,7 @@ public class DefaultTaskScheduler extends AbstractScheduler {
             }
         }
         currentTaskCount.getAndAdd(addCount.get());
+        logger.info("{} adds {} new tasks.", schedulerName, addCount.get());
         return addCount.get();
     }
 
@@ -57,16 +63,30 @@ public class DefaultTaskScheduler extends AbstractScheduler {
         } else {
             taskQueue.add(task);
             currentTaskCount.incrementAndGet();
+            logger.info("{} add task = {}", schedulerName, task.getUrl());
             return true;
         }
     }
 
-    public boolean push(Task task) {
-        return add(task);
-    }
+//    public boolean push(Task task) {
+//        return add(task);
+//    }
+//
+//    public int pushList(List<Task> taskList) {
+//        return addList(taskList);
+//    }
 
-    public int pushList(List<Task> taskList) {
-        return addList(taskList);
+    public void clear() {
+        synchronized (this) {
+            if (!taskQueue.isEmpty()) {
+                taskQueue.clear();
+            }
+            if (!visitedPool.isEmpty()) {
+                visitedPool.clear();
+            }
+            currentTaskCount.set(0);
+            visitedCount.set(0);
+        }
     }
 
     public Task poll() {

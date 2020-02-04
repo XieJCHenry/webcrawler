@@ -34,7 +34,7 @@ public class ConsolePersistence extends AbstractPersistence {
         joiner.add("contentType = " + webPage.getContentType());
         joiner.add("charSet = " + webPage.getCharSet());
         joiner.add("downTime = " + webPage.getTime());
-//        joiner.add("content = "+webPage.getContent());
+        joiner.add("resultFields = {" + resultItem.getResultFields().toString() + "}");
         resultItem.setPersistSuccess(true);
         resultItem.setProcessTime(LocalDateTime.now());
         logger.info("ResultItem = [{}]", joiner.toString());

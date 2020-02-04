@@ -19,7 +19,6 @@ import java.util.Map;
  **/
 public class HttpClientConfiguration {
 
-
     private String userAgent;
 
     private String host;

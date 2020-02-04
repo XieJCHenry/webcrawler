@@ -29,19 +29,15 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class HttpClientDownloader {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(HttpClientDownloader.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpClientDownloader.class);
 
-    private final SystemProxyStrategyRegister register =
-            SystemProxyStrategyRegister.getInstance();
+    private final SystemProxyStrategyRegister register = SystemProxyStrategyRegister.getInstance();
 
-    private final Map<String, CloseableHttpClient> httpClients =
-            new ConcurrentHashMap<>();
+    private final Map<String, CloseableHttpClient> httpClients = new ConcurrentHashMap<>();
 
     private ProxyModel proxy;
 
-    private HttpClientDownloaderBuilder downloaderBuilder =
-            HttpClientDownloaderBuilder.create();
+    private HttpClientDownloaderBuilder downloaderBuilder = HttpClientDownloaderBuilder.create();
     private HttpRequestConverter requestConverter = new HttpRequestConverter();
 
     /**
@@ -72,8 +68,7 @@ public class HttpClientDownloader {
                 configuration, proxy);
         WebPage webPage = WebPage.fail();
         try {
-            response = httpClient.execute(requestContext.getRequest(),
-                    requestContext.getContext());
+            response = httpClient.execute(requestContext.getRequest(), requestContext.getContext());
             webPage = handleResponse(response, task);
             logger.info("Download Page success: {}", webPage.getPath());
         } catch (IOException e) {
@@ -90,6 +85,18 @@ public class HttpClientDownloader {
             }
         }
         return webPage;
+    }
+
+    public void close() {
+        for (Map.Entry<String, CloseableHttpClient> entry : httpClients.entrySet()) {
+            CloseableHttpClient client = entry.getValue();
+            try {
+                if (client != null)
+                    client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**

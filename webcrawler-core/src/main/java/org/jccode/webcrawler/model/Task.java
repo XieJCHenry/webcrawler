@@ -28,6 +28,8 @@ import java.util.Objects;
 @EqualsAndHashCode
 public class Task implements Serializable {
 
+    public static final int DEFAULT_RETRIES = 3;
+
     private String host;
 
     private String url;
@@ -39,9 +41,11 @@ public class Task implements Serializable {
     @Deprecated
     private HttpUriRequest request;
 
-    private boolean useProxy;
+    private boolean useProxy = false;
 
     private boolean executeSuccess;
+
+    private int retryTimes = DEFAULT_RETRIES;
 
     /**
      * 如果请求的是二进制数据，不使用编码进行解析
@@ -67,8 +71,7 @@ public class Task implements Serializable {
 
 
     public Task(String url, String requestMethod) {
-        this.url = url;
-        this.method = requestMethod;
+        this(url, requestMethod, false);
         this.host = UrlUtils.extractHost(url);
     }
 
@@ -77,9 +80,24 @@ public class Task implements Serializable {
         this.useProxy = useProxy;
     }
 
+    public Task(String url, String requestMethod, boolean useProxy) {
+        this.url = url;
+        this.method = requestMethod;
+        this.useProxy = useProxy;
+    }
+
     public Task(String url, String requestMethod, String charset) {
-        this(url, requestMethod);
+        this(url, requestMethod, false);
         this.charset = charset;
+    }
+
+    public boolean decrementRetryTimes() {
+        if (retryTimes == 0)
+            return false;
+        else {
+            retryTimes--;
+            return true;
+        }
     }
 
 }
